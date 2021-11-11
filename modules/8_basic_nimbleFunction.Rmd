@@ -26,6 +26,14 @@ library(nimble)
 
 But their main purpose is providing a way for developers to implement algorithms.
 
+# Why develop an algorithm in NIMBLE?
+
+ - You get flexible hierarchical modeling infrastructure "for free".
+ - The NIMBLE system allows you to program essentially arbitrary computations.
+ - You can combine your method with or build on top of  ones already available in NIMBLE.
+ - You can distribute your method as a separate package that uses NIMBLE.
+
+
 # Components of a nimbleFunction
 
 NIMBLE uses the concept of *two-stage evaluation* from computer science to run a model-specific algorithm based on model-generic algorithm code. The first stage of evaluation specializes the algorithm to the model of interest via *setup* code. The second stage runs the algorithm via *run* code. 

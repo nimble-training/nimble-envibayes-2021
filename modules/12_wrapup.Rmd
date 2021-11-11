@@ -1,0 +1,42 @@
+---
+title: "Final thoughts"
+subtitle: "enviBayes 2021 tutorial"
+author: "NIMBLE Development Team"
+output:
+  html_document:
+    code_folding: show
+---
+
+# Getting help with and contributing to NIMBLE
+
+  - User manual ([html](https://r-nimble.org/html_manual/cha-welcome-nimble.html) or [pdf](https://r-nimble.org/manuals/NimbleUserManual.pdf)) 
+  - Announcements: [nimble-announce Google group](https://groups.google.com/forum/#!forum/nimble-announce)
+ - User	support/discussion: [nimble-users Google group](https://groups.google.com/forum/#!forum/nimble-users)
+  - Write an algorithm using NIMBLE! We're happy to work with you to provide help.
+    - Distribute as your own R package that depends on NIMBLE.
+    - Make available as stand-alone code on your or our website.
+  - Help with development of NIMBLE: email nimble.stats@gmail.com or see [github.com/nimble-dev/nimble](https://github.com/nimble-dev/nimble)
+
+We try to be responsive on the the user support/discussion list, and welcome others to contribute answers as well. 
+
+# Ongoing work in NIMBLE
+
+  - Automatic derivatives (coming soon):
+    - Hamiltonian Monte Carlo
+    - Laplace approximation and related quadrature methods
+    - Maximum (marginal) likelihood
+  - Improved scalability (in progress)
+    - Faster model and algorithm building and compilation
+    - Parallelization in nimbleFunctions
+    - Improved linear algebra (including sparse matrices)
+  - Improved workflow (in progress)
+    - Saving and re-loading work
+    - More flexible nimbleFunction syntax
+    - Better nimbleFunction error trapping/messages
+  - Continued development of Bayesian nonparametrics (Claudia Wehrhahn and Abel Rodriguez @ UC Santa Cruz)
+  
+# Big-picture goals
+
+  - enhancing methodological "tech transfer"
+  - improving reproducibility of research that uses hierarchical models and of methods research for hierarchical models
+  - enabling easier comparison of methods
