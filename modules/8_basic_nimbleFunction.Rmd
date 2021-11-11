@@ -43,9 +43,9 @@ Thus, a nimbleFunction has two parts:
  - setup code: used to tailor the algorithm to a particular model structure. Often this involves determining dependencies amongst nodes in the model and setting up storage using *modelValues*
  - run code: the guts of the algorithm, written generically so it will apply to any (appropriate) model
 
-Setup code is written as a R function, using R code, usually including NIMBLE's special functions for querying the model structure (see the [module on querying model structure](4.5_model_structure_slides.html)). 
+Setup code is written as a R function, using R code, usually including NIMBLE's special functions for querying the model structure (see the [module on querying model structure](10_model_structure.html)). 
 
-Run code is written using the NIMBLE *domain-specific language* (DSL). While this is formally a language distinct from R, you can just think of it as a subset of R, enhanced with some functions for operating on the model (see the [module on operating a model](4.4_operating_model_slides.html)). 
+Run code is written using the NIMBLE *domain-specific language* (DSL). While this is formally a language distinct from R, you can just think of it as a subset of R, enhanced with some functions for operating on the model (see the [module on operating a model](9_operating_model.html)). 
 
 # Some syntax for nimbleFunctions
 
@@ -146,13 +146,15 @@ objective <- nimbleFunction(
 
 # Writing generic functions - querying model structure
 
-Calculating the density for all model nodes is not necessary for this optimization, as any nodes that do not depend on the target parameters do not play a role in the optimization.
+Calculating the density for all model nodes is not necessary for this optimization, since we're doing maximum likelihood rather than maximum a posteriori (MAP) estimation. In particular we don't need to calculate the prior density values.
 
 ```{r, nf-generic2}
 objective <- nimbleFunction(
     setup = function(model, target) {
-          calcNodes <- model$getDependencies(target)
-          },
+        ## We only need to calculate the likelihood, not the full model density.  
+        calcNodes <- model$getDependencies(target, self = FALSE)
+        cat("Maximixing w.r.t. ", paste(calcNodes, collapse = ','), ".\n", sep = "")
+    },
     run = function(par = double(1)) {
         returnType(double(0))
         values(model, target) <<- exp(par)
@@ -162,8 +164,6 @@ objective <- nimbleFunction(
 )
 ```
 
-
-(Of course for maximum marginal likelihood we'd generally expect that the entire model probability density would be calculated.)
 
 ```{r, litters-optimize2}
 rObjective <- objective(littersMargModel, c('a', 'b')) ## or c('a[1]','a[2]','b[1]','b[2]')

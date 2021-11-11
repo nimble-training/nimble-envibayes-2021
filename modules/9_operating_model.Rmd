@@ -1,0 +1,128 @@
+---
+title: "Programming with models: Operating a model"
+subtitle: "enviBayes 2021 tutorial"
+author: "NIMBLE Development Team"
+output:
+  html_document:
+    code_folding: show
+---
+
+
+```{r chunksetup, include=FALSE} 
+# include any code here you don't want to show up in the document,
+# e.g. package and dataset loading
+library(methods)  # otherwise new() not being found - weird
+library(nimble)
+read_chunk("chunks_litters.R")
+```
+
+# Overview
+
+We've seen nimbleFunctions in a couple contexts so far, including the maximum marginal likelihood example in which we queried model structure and used NIMBLE's built-in methods for doing calculations with a model. In this module, we'll explore doing general calculations with a model. 
+
+We'll start with how one can treat the model as an object that you can manipulate. Even without further NIMBLE programming this can be useful for exploring a model or for setting up simulations with a model.
+
+Let's define a few terms:
+
+ - data: a known quantity in a model, also represented as a random variable, e.g., `r[1,1], r[1,2], ...` in the litters model
+ - constants: other fixed quantities involved in the model, e.g., `N` in the litters model
+ - node: an element in the model graph representing data, parameter, or a deterministic quantity that is a function of other quantities in the model, e.g. `a[1]`, `a[2]`, and `r[1, 2]` in the litters model
+    - nodes can be univariate or multivariate depending on whether they ae defined based on a joint (multivariate) density or joint assignment
+ - variable: a collection of one or more nodes with the same name, e.g., 'a' or 'r' in the litters model
+
+
+# Running example: the litters model
+
+We first need to build the model as usual. 
+
+```{r, litters-code}
+littersCode <- nimbleCode({
+  for (i in 1:G) {
+     for (j in 1:N) {
+        # likelihood (data model)
+        r[i,j] ~ dbin(p[i,j], n[i,j])
+        # latent process (random effects)
+        p[i,j] ~ dbeta(a[i], b[i]) 
+     }
+     # priors for hyperparameters
+     a[i] ~ dgamma(1, .001)
+     b[i] ~ dgamma(1, .001)
+   }
+})
+```
+
+```{r, litters-model}
+```
+
+```{r, litters-compile}
+```
+
+# Values in the model
+
+What's the current value in a variable?
+
+
+```{r, model-values}
+littersModel$r  
+littersModel$a[1]
+littersModel$p
+```
+
+Setting values:
+
+```{r, model-set-values}
+littersModel$a[1] <- 5
+littersModel$a
+```
+
+
+# Operating the model: *simulate()*
+ 
+We have control over the model. In particular, for every node, NIMBLE provides *calculate()* and *simulate()* functions that calculate the current probability density value for the node and simulate a new value for the node from its (prior) distribution (i.e., given only parent nodes). These operations lie at the heart of many algorithms.
+
+*simulate()* puts new values into the model; if you want to see those values, you need to look into the model.
+
+```{r, model-simulate}
+set.seed(1)  # so the calculations are reproducible
+littersModel$simulate('p')  # simulate from prior
+littersModel$p
+littersModel$getLogProb('p')  # log prob not yet updated!
+littersModel$calculate('p')   # update it
+littersModel$getLogProb('p')  # now we're good
+```
+
+**Question**: The NIMBLE developers chose to not automatically recalculate density values when a node's value changes nor deterministic dependent nodes when a parent node changes. We can discuss the the design considerations in making that choice and the advantages and disadvantages of the choice.
+
+# Operating the model: *calculate()* 
+
+
+Let's change values in the model and recalculate the density values. NIMBLE sometimes introduces hidden nodes not specified in the model, so when calculating model density values, it's best to ask NIMBLE to do so based on the dependencies of the altered node.
+
+```{r, model-operate}
+littersModel$getLogProb('p')
+littersModel$a[1] <- 1
+littersModel$b[1] <- 3
+littersModel$getLogProb('p')  # recall why this hasn't changed yet
+
+## DON'T DO THIS! (though it's ok to do here...)
+## littersModel$calculate('p')
+
+## INSTEAD DO THIS
+deps <- littersModel$getDependencies(c('a[1]','b[1]'))
+littersModel$calculate(deps)
+
+## alternatively, we could just update the entire model to be safe:
+## littersModel$calculate()
+
+## now that model state is updated, can ask for logProbs
+littersModel$getLogProb('p')
+```
+
+In the next module we will:
+
+ - see much more about querying model structure in addition to `getDependencies`
+ - see why one shouldn't call `calculate` without querying the model structure
+
+# Compiled execution
+
+All of what we've done works (and much more quickly for larger models) with the compiled version of a NIMBLE model.

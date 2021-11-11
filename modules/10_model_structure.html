@@ -6,7 +6,7 @@
   <meta http-equiv="Content-Style-Type" content="text/css" />
   <meta name="generator" content="pandoc" />
   <meta name="author" content="NIMBLE Development Team" />
-  <title>Programming with models: Writing nimbleFunctions to implement algorithms</title>
+  <title>Programming with models: Inspecting model structure</title>
   <style type="text/css">
       code{white-space: pre-wrap;}
       span.smallcaps{font-variant: small-caps;}
@@ -81,195 +81,249 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </head>
 <body>
 <div class="slide titlepage">
-  <h1 class="title">Programming with models: Writing nimbleFunctions to implement algorithms</h1>
+  <h1 class="title">Programming with models: Inspecting model structure</h1>
   <p class="subtitle">enviBayes 2021 tutorial</p>
   <p class="author">
 NIMBLE Development Team
   </p>
 </div>
-<div id="introduction" class="slide section level1">
-<h1>Introduction</h1>
-<p><em>nimbleFunctions</em> are at the heart of NIMBLE. They are the way that algorithms are implemented. They can also be used for</p>
+<div id="running-example-the-litters-model-reparameterized" class="slide section level1">
+<h1>Running example: the litters model (reparameterized)</h1>
+<p>Now let’s explore how to understand the dependence structure of a model. The model is a directed acyclic graph, after all, so we should be able to work with that graph structure.</p>
+<p>We’ll work with a different parameterization of the beta distribution to be able to illustrate additional concepts.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" title="1">littersCode &lt;-<span class="st"> </span><span class="kw">nimbleCode</span>({</a>
+<a class="sourceLine" id="cb1-2" title="2">  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>G) {</a>
+<a class="sourceLine" id="cb1-3" title="3">     <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>N) {</a>
+<a class="sourceLine" id="cb1-4" title="4">        <span class="co"># likelihood (data model)</span></a>
+<a class="sourceLine" id="cb1-5" title="5">        r[i,j] <span class="op">~</span><span class="st"> </span><span class="kw">dbin</span>(p[i,j], n[i,j])</a>
+<a class="sourceLine" id="cb1-6" title="6">        <span class="co"># latent process (random effects)</span></a>
+<a class="sourceLine" id="cb1-7" title="7">        <span class="co"># note use of alternative parameterization and named parameters</span></a>
+<a class="sourceLine" id="cb1-8" title="8">        p[i,j] <span class="op">~</span><span class="st"> </span><span class="kw">dbeta</span>(<span class="dt">mean =</span> mu[i], <span class="dt">sd =</span> sigma[i])</a>
+<a class="sourceLine" id="cb1-9" title="9">     }</a>
+<a class="sourceLine" id="cb1-10" title="10">     <span class="co"># prior for hyperparameters</span></a>
+<a class="sourceLine" id="cb1-11" title="11">     mu[i] <span class="op">~</span><span class="st"> </span><span class="kw">dflat</span>()</a>
+<a class="sourceLine" id="cb1-12" title="12">     sigma[i] <span class="op">~</span><span class="st"> </span><span class="kw">dunif</span>(<span class="dv">0</span>, <span class="dv">100</span>)</a>
+<a class="sourceLine" id="cb1-13" title="13">   }</a>
+<a class="sourceLine" id="cb1-14" title="14">})</a></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" title="1">G &lt;-<span class="st"> </span><span class="dv">2</span></a>
+<a class="sourceLine" id="cb2-2" title="2">N &lt;-<span class="st"> </span><span class="dv">16</span></a>
+<a class="sourceLine" id="cb2-3" title="3">n &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">c</span>(<span class="dv">13</span>, <span class="dv">12</span>, <span class="dv">12</span>, <span class="dv">11</span>, <span class="dv">9</span>, <span class="dv">10</span>, </a>
+<a class="sourceLine" id="cb2-4" title="4">              <span class="dv">9</span>, <span class="dv">9</span>, <span class="dv">8</span>, <span class="dv">11</span>, <span class="dv">8</span>, <span class="dv">10</span>, <span class="dv">13</span>, <span class="dv">10</span>, <span class="dv">12</span>, <span class="dv">9</span>, <span class="dv">10</span>, <span class="dv">9</span>, <span class="dv">10</span>, <span class="dv">5</span>, <span class="dv">9</span>, <span class="dv">9</span>, <span class="dv">13</span>, </a>
+<a class="sourceLine" id="cb2-5" title="5">              <span class="dv">7</span>, <span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">7</span>, <span class="dv">6</span>, <span class="dv">10</span>, <span class="dv">10</span>, <span class="dv">10</span>, <span class="dv">7</span>), <span class="dt">nrow =</span> <span class="dv">2</span>)</a>
+<a class="sourceLine" id="cb2-6" title="6">r &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">c</span>(<span class="dv">13</span>, <span class="dv">12</span>, <span class="dv">12</span>, <span class="dv">11</span>, <span class="dv">9</span>, <span class="dv">10</span>, <span class="dv">9</span>, <span class="dv">9</span>, <span class="dv">8</span>, <span class="dv">10</span>, <span class="dv">8</span>, <span class="dv">9</span>, </a>
+<a class="sourceLine" id="cb2-7" title="7">     <span class="dv">12</span>, <span class="dv">9</span>, <span class="dv">11</span>, <span class="dv">8</span>, <span class="dv">9</span>, <span class="dv">8</span>, <span class="dv">9</span>, <span class="dv">4</span>, <span class="dv">8</span>, <span class="dv">7</span>, <span class="dv">11</span>, <span class="dv">4</span>, <span class="dv">4</span>, <span class="dv">5</span>, <span class="dv">5</span>, <span class="dv">3</span>, <span class="dv">7</span>, <span class="dv">3</span>, <span class="dv">7</span>, <span class="dv">0</span>), </a>
+<a class="sourceLine" id="cb2-8" title="8">     <span class="dt">nrow =</span> <span class="dv">2</span>)</a>
+<a class="sourceLine" id="cb2-9" title="9">              </a>
+<a class="sourceLine" id="cb2-10" title="10">littersConstants &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">G =</span> G, <span class="dt">N =</span> N, <span class="dt">n =</span> n)</a>
+<a class="sourceLine" id="cb2-11" title="11">littersData &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">r =</span> r)</a>
+<a class="sourceLine" id="cb2-12" title="12">littersInits &lt;-<span class="st"> </span><span class="kw">list</span>(<span class="dt">mu =</span> <span class="kw">rep</span>(<span class="fl">0.5</span>, <span class="dv">2</span>), <span class="dt">sigma =</span> <span class="kw">rep</span>(<span class="dv">3</span>, <span class="dv">2</span>))</a>
+<a class="sourceLine" id="cb2-13" title="13"></a>
+<a class="sourceLine" id="cb2-14" title="14"><span class="co">## create the NIMBLE model object</span></a>
+<a class="sourceLine" id="cb2-15" title="15">model &lt;-<span class="st"> </span><span class="kw">nimbleModel</span>(littersCode, </a>
+<a class="sourceLine" id="cb2-16" title="16">          <span class="dt">data =</span> littersData, <span class="dt">constants =</span> littersConstants, <span class="dt">inits =</span> littersInits)</a></code></pre></div>
+<pre><code>## Defining model</code></pre>
+<pre><code>## Building model</code></pre>
+<pre><code>## Setting data and initial values</code></pre>
+<pre><code>## Running calculate on model
+##   [Note] Any error reports that follow may simply reflect missing values in model variables.</code></pre>
+<pre><code>## Checking model sizes and dimensions</code></pre>
+<pre><code>##   [Note] This model is not fully initialized. This is not an error.
+##          To see which variables are not initialized, use model$initializeInfo().
+##          For more information on model initialization, see help(modelInitialization).</code></pre>
+</div>
+<div id="nodes-and-variables" class="slide section level1">
+<h1>Nodes and variables</h1>
+<p>The parameters and data in a model are represented as nodes in a graph. Here we define some terms:</p>
 <ul>
-<li>user-defined BUGS distributions (already seen),</li>
-<li>user-defined BUGS functions (not seen, but similar to user-defined distributions)</li>
-<li>user-defined MCMC samplers (coming soon), and</li>
-<li>compiling parts of R (not seen), without reference to a model.</li>
-</ul>
-<p>But their main purpose is providing a way for developers to implement algorithms.</p>
-</div>
-<div id="why-develop-an-algorithm-in-nimble" class="slide section level1">
-<h1>Why develop an algorithm in NIMBLE?</h1>
+<li>parameter: an unknown quantity in the model that is represented as a random variable and will generally be estimated in an algorithm, e.g. <code>mu[1]</code> in the (reparameterized) litters model</li>
+<li>data: a known quantity in a model, also represented as a random variable, e.g., <code>r[1, 1], ..., r[1, 16], ...</code> in the litters model</li>
+<li>constants: other fixed quantities involved in the model, e.g., <code>N</code> in the litters model</li>
+<li>node: an element in the model graph representing data, parameter, or a deterministic quantity that is a function of other quantities in the model, e.g., <code>mu[1]</code>, <code>mu[2]</code>, or <code>p[1, 5]</code> in the litters model
 <ul>
-<li>You get flexible hierarchical modeling infrastructure “for free”.</li>
-<li>The NIMBLE system allows you to program essentially arbitrary computations.</li>
-<li>You can combine your method with or build on top of ones already available in NIMBLE.</li>
-<li>You can distribute your method as a separate package that uses NIMBLE.</li>
+<li>nodes can be univariate or multivariate depending on whether they are defined based on a univariate or multivariate density (or scalar or vectorized assignment for deterministic nodes)</li>
+</ul></li>
+<li>variable: a collection of one or more nodes with the same name, e.g., <em>mu</em> or <em>r</em> in the litters model.</li>
 </ul>
 </div>
-<div id="components-of-a-nimblefunction" class="slide section level1">
-<h1>Components of a nimbleFunction</h1>
-<p>NIMBLE uses the concept of <em>two-stage evaluation</em> from computer science to run a model-specific algorithm based on model-generic algorithm code. The first stage of evaluation specializes the algorithm to the model of interest via <em>setup</em> code. The second stage runs the algorithm via <em>run</em> code.</p>
-<p>Thus, a nimbleFunction has two parts:</p>
+<div id="querying-nodes-and-variables" class="slide section level1">
+<h1>Querying nodes and variables</h1>
+<p>NIMBLE provides users and programmers with the ability to get information about the nodes and variables in the model and the relationships amongst them.</p>
+<p>We can use NIMBLE to ask questions such as:</p>
 <ul>
-<li>setup code: used to tailor the algorithm to a particular model structure. Often this involves determining dependencies amongst nodes in the model and setting up storage using <em>modelValues</em></li>
-<li>run code: the guts of the algorithm, written generically so it will apply to any (appropriate) model</li>
+<li>What are the nodes in the model?</li>
+<li>What are the dependencies of a given node? Note that this is information used in many algorithms.</li>
 </ul>
-<p>Setup code is written as a R function, using R code, usually including NIMBLE’s special functions for querying the model structure (see the <a href="10_model_structure.html">module on querying model structure</a>).</p>
-<p>Run code is written using the NIMBLE <em>domain-specific language</em> (DSL). While this is formally a language distinct from R, you can just think of it as a subset of R, enhanced with some functions for operating on the model (see the <a href="9_operating_model.html">module on operating a model</a>).</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" title="1">nodes &lt;-<span class="st"> </span>model<span class="op">$</span><span class="kw">getNodeNames</span>()</a>
+<a class="sourceLine" id="cb9-2" title="2">nodes[<span class="dv">1</span><span class="op">:</span><span class="dv">11</span>]</a></code></pre></div>
+<pre><code>##  [1] &quot;mu[1]&quot;                                                                                                        
+##  [2] &quot;mu[2]&quot;                                                                                                        
+##  [3] &quot;sigma[1]&quot;                                                                                                     
+##  [4] &quot;sigma[2]&quot;                                                                                                     
+##  [5] &quot;lifted_mu_oBi_cB_tothe_2_times__oP1_minus_mu_oBi_cB_cP_over_sigma_oBi_cB_tothe_2_minus_mu_oBi_cB_L4[1]&quot;       
+##  [6] &quot;lifted_mu_oBi_cB_times__oP1_minus_mu_oBi_cB_cP_tothe_2_over_sigma_oBi_cB_tothe_2_plus_mu_oBi_cB_minus_1_L4[1]&quot;
+##  [7] &quot;lifted_mu_oBi_cB_tothe_2_times__oP1_minus_mu_oBi_cB_cP_over_sigma_oBi_cB_tothe_2_minus_mu_oBi_cB_L4[2]&quot;       
+##  [8] &quot;lifted_mu_oBi_cB_times__oP1_minus_mu_oBi_cB_cP_tothe_2_over_sigma_oBi_cB_tothe_2_plus_mu_oBi_cB_minus_1_L4[2]&quot;
+##  [9] &quot;p[1, 1]&quot;                                                                                                      
+## [10] &quot;p[1, 2]&quot;                                                                                                      
+## [11] &quot;p[1, 3]&quot;</code></pre>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" title="1">top &lt;-<span class="st"> </span>model<span class="op">$</span><span class="kw">getNodeNames</span>(<span class="dt">topOnly =</span> <span class="ot">TRUE</span>)</a>
+<a class="sourceLine" id="cb11-2" title="2">top</a></code></pre></div>
+<pre><code>## [1] &quot;mu[1]&quot;    &quot;mu[2]&quot;    &quot;sigma[1]&quot; &quot;sigma[2]&quot;</code></pre>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" title="1">muDeps &lt;-<span class="st"> </span>model<span class="op">$</span><span class="kw">getDependencies</span>(<span class="st">&#39;mu&#39;</span>)</a>
+<a class="sourceLine" id="cb13-2" title="2">muDeps[<span class="dv">1</span><span class="op">:</span><span class="dv">11</span>]</a></code></pre></div>
+<pre><code>##  [1] &quot;mu[1]&quot;                                                                                                        
+##  [2] &quot;mu[2]&quot;                                                                                                        
+##  [3] &quot;lifted_mu_oBi_cB_tothe_2_times__oP1_minus_mu_oBi_cB_cP_over_sigma_oBi_cB_tothe_2_minus_mu_oBi_cB_L4[1]&quot;       
+##  [4] &quot;lifted_mu_oBi_cB_times__oP1_minus_mu_oBi_cB_cP_tothe_2_over_sigma_oBi_cB_tothe_2_plus_mu_oBi_cB_minus_1_L4[1]&quot;
+##  [5] &quot;lifted_mu_oBi_cB_tothe_2_times__oP1_minus_mu_oBi_cB_cP_over_sigma_oBi_cB_tothe_2_minus_mu_oBi_cB_L4[2]&quot;       
+##  [6] &quot;lifted_mu_oBi_cB_times__oP1_minus_mu_oBi_cB_cP_tothe_2_over_sigma_oBi_cB_tothe_2_plus_mu_oBi_cB_minus_1_L4[2]&quot;
+##  [7] &quot;p[1, 1]&quot;                                                                                                      
+##  [8] &quot;p[1, 2]&quot;                                                                                                      
+##  [9] &quot;p[1, 3]&quot;                                                                                                      
+## [10] &quot;p[1, 4]&quot;                                                                                                      
+## [11] &quot;p[1, 5]&quot;</code></pre>
 </div>
-<div id="some-syntax-for-nimblefunctions" class="slide section level1">
-<h1>Some syntax for nimbleFunctions</h1>
-<p>Here are some of the functions you may use in the run function of a nimbleFunction:</p>
-<ul>
-<li><em>returnType</em>, e.g., <code>returnType(double(1))</code> for a vector of reals</li>
-<li><em>length</em>, e.g., <code>length(x)</code> to determine the length of a run-time argument <em>x</em></li>
-<li><em>numeric</em>, <em>matrix</em> and <em>array</em> e.g., <code>result &lt;- numeric(n, init = 1.0)</code> to create a vector of reals called <em>result</em> initialized with values of 1.0</li>
-<li>model member functions <em>calculate</em>, <em>simulate</em>, <em>getLogProb</em>, <em>calculateDiff</em> and <em>getParam</em> to manipulate the model</li>
-<li>direct access to nodes or variables in a model using typical R syntax, e.g., <code>model[[myNode]] &lt;- rnorm(1)</code></li>
-<li><em>values()</em> and <em>copy()</em> (or, equivalently, <em>nimCopy</em>) to copy values</li>
-<li><em>print()</em> and <em>cat()</em></li>
-<li>basic math, including vectorized math and some linear algebra</li>
-<li>random number generation functions, e.g., <code>rnorm(1, 100, 5)</code></li>
-<li>calling out to arbitrary R or C/C++ code with <em>nimbleRcall()</em> and <em>nimbleExternalCall()</em></li>
-<li><em>nimbleList</em> data structures.</li>
-</ul>
-<p>Section IV of the NIMBLE User Manual describes the syntax for <em>run</em> code in detail, including lots of neat functionality such as using nested nimbleFunctions and having multiple run-time functions (i.e., class methods) as part of a nimbleFunction. We’ll see more of that in future modules.</p>
-<p>This <a href="https://github.com/nimble-dev/nimble/wiki/Tips-for-avoiding-errors-in-nimbleFunction-programming-and-compilation-%28DSL%29">tips and tricks page</a> details some syntax that does NOT work due to some clunkiness in our compilation system.</p>
-<p>nimbleFunctions use <strong>pass-by-reference</strong> not R style <strong>pass-by-value</strong>, so be careful about modifying an object and then using it elsewhere.</p>
+<div id="data-nodes" class="slide section level1">
+<h1>Data nodes</h1>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" title="1">model<span class="op">$</span><span class="kw">getNodeNames</span>(<span class="dt">dataOnly =</span> <span class="ot">TRUE</span>)</a></code></pre></div>
+<pre><code>##  [1] &quot;r[1, 1]&quot;  &quot;r[1, 2]&quot;  &quot;r[1, 3]&quot;  &quot;r[1, 4]&quot;  &quot;r[1, 5]&quot;  &quot;r[1, 6]&quot; 
+##  [7] &quot;r[1, 7]&quot;  &quot;r[1, 8]&quot;  &quot;r[1, 9]&quot;  &quot;r[1, 10]&quot; &quot;r[1, 11]&quot; &quot;r[1, 12]&quot;
+## [13] &quot;r[1, 13]&quot; &quot;r[1, 14]&quot; &quot;r[1, 15]&quot; &quot;r[1, 16]&quot; &quot;r[2, 1]&quot;  &quot;r[2, 2]&quot; 
+## [19] &quot;r[2, 3]&quot;  &quot;r[2, 4]&quot;  &quot;r[2, 5]&quot;  &quot;r[2, 6]&quot;  &quot;r[2, 7]&quot;  &quot;r[2, 8]&quot; 
+## [25] &quot;r[2, 9]&quot;  &quot;r[2, 10]&quot; &quot;r[2, 11]&quot; &quot;r[2, 12]&quot; &quot;r[2, 13]&quot; &quot;r[2, 14]&quot;
+## [31] &quot;r[2, 15]&quot; &quot;r[2, 16]&quot;</code></pre>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" title="1">model<span class="op">$</span><span class="kw">isData</span>(<span class="st">&#39;r&#39;</span>)</a></code></pre></div>
+<pre><code>##  [1] TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE
+## [16] TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE TRUE
+## [31] TRUE TRUE</code></pre>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb19-1" title="1"><span class="co">## parameters (including imputed data)</span></a>
+<a class="sourceLine" id="cb19-2" title="2">model<span class="op">$</span><span class="kw">getNodeNames</span>(<span class="dt">stochOnly =</span> <span class="ot">TRUE</span>, <span class="dt">includeData =</span> <span class="ot">FALSE</span>)</a></code></pre></div>
+<pre><code>##  [1] &quot;mu[1]&quot;    &quot;mu[2]&quot;    &quot;sigma[1]&quot; &quot;sigma[2]&quot; &quot;p[1, 1]&quot;  &quot;p[1, 2]&quot; 
+##  [7] &quot;p[1, 3]&quot;  &quot;p[1, 4]&quot;  &quot;p[1, 5]&quot;  &quot;p[1, 6]&quot;  &quot;p[1, 7]&quot;  &quot;p[1, 8]&quot; 
+## [13] &quot;p[1, 9]&quot;  &quot;p[1, 10]&quot; &quot;p[1, 11]&quot; &quot;p[1, 12]&quot; &quot;p[1, 13]&quot; &quot;p[1, 14]&quot;
+## [19] &quot;p[1, 15]&quot; &quot;p[1, 16]&quot; &quot;p[2, 1]&quot;  &quot;p[2, 2]&quot;  &quot;p[2, 3]&quot;  &quot;p[2, 4]&quot; 
+## [25] &quot;p[2, 5]&quot;  &quot;p[2, 6]&quot;  &quot;p[2, 7]&quot;  &quot;p[2, 8]&quot;  &quot;p[2, 9]&quot;  &quot;p[2, 10]&quot;
+## [31] &quot;p[2, 11]&quot; &quot;p[2, 12]&quot; &quot;p[2, 13]&quot; &quot;p[2, 14]&quot; &quot;p[2, 15]&quot; &quot;p[2, 16]&quot;</code></pre>
 </div>
-<div id="a-basic-example-empirical-bayes-maximum-marginal-likelihood" class="slide section level1">
-<h1>A basic example: empirical Bayes / maximum marginal likelihood</h1>
-<p>Let’s consider how we would optimize the parameters in a model using a nimbleFunction. Basically, we’ll just construct an objective function that we can then pass to R’s <em>optim</em> function to do the actual numerical optimization. (NIMBLE also has an <code>optim()</code> that you can use within a nimbleFunction.)</p>
-<p>This amounts to setting things up to find the posterior mode of a model; this is generally a reasonable thing to do only for models with a small number of parameters and without hierarchical structure. That sounds restrictive, but if you can marginalize out the latent process values, then we’re doing empirical Bayes.</p>
-</div>
-<div id="a-nimblefunction-for-the-litters-marginalized-model" class="slide section level1">
-<h1>A nimbleFunction for the litters marginalized model</h1>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" title="1">objective &lt;-<span class="st"> </span><span class="kw">nimbleFunction</span>(</a>
-<a class="sourceLine" id="cb1-2" title="2">    <span class="dt">setup =</span> <span class="cf">function</span>(model) {</a>
-<a class="sourceLine" id="cb1-3" title="3">          <span class="co"># ordinarily we would do stuff here, but in this case</span></a>
-<a class="sourceLine" id="cb1-4" title="4">          <span class="co"># we only need make the nimbleFunction aware of the model</span></a>
-<a class="sourceLine" id="cb1-5" title="5">          },</a>
-<a class="sourceLine" id="cb1-6" title="6">    <span class="dt">run =</span> <span class="cf">function</span>(<span class="dt">par =</span> <span class="kw">double</span>(<span class="dv">1</span>)) {</a>
-<a class="sourceLine" id="cb1-7" title="7">        <span class="kw">returnType</span>(<span class="kw">double</span>(<span class="dv">0</span>))</a>
-<a class="sourceLine" id="cb1-8" title="8">        <span class="co">## Assignment into model or variables created in setup code</span></a>
-<a class="sourceLine" id="cb1-9" title="9">        <span class="co">## requires global assignment operator, &lt;&lt;-</span></a>
-<a class="sourceLine" id="cb1-10" title="10">        model[[<span class="st">&#39;a&#39;</span>]] &lt;&lt;-<span class="st"> </span><span class="kw">exp</span>(par[<span class="dv">1</span><span class="op">:</span><span class="dv">2</span>])</a>
-<a class="sourceLine" id="cb1-11" title="11">        model[[<span class="st">&#39;b&#39;</span>]] &lt;&lt;-<span class="st"> </span><span class="kw">exp</span>(par[<span class="dv">3</span><span class="op">:</span><span class="dv">4</span>])</a>
-<a class="sourceLine" id="cb1-12" title="12">        ans &lt;-<span class="st"> </span>model<span class="op">$</span><span class="kw">calculate</span>()</a>
-<a class="sourceLine" id="cb1-13" title="13">        <span class="kw">return</span>(ans)</a>
-<a class="sourceLine" id="cb1-14" title="14">    }</a>
-<a class="sourceLine" id="cb1-15" title="15">)</a></code></pre></div>
-<p>This is actually a nimbleFunction <em>generator</em> – we can’t run it yet – we need to create a specialized instance of the nimbleFunction that is tailored for some model, in our case the marginalized litters model.</p>
-</div>
-<div id="specializing-the-nimblefunction-to-the-model" class="slide section level1">
-<h1>Specializing the nimbleFunction to the model</h1>
-<p>First let’s build the marginalized litters model again.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" title="1"><span class="kw">source</span>(<span class="st">&quot;chunks_litters_marginal.R&quot;</span>)</a></code></pre></div>
-<p>Now we specialize the algorithm to the specific model object.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" title="1">rObjective &lt;-<span class="st"> </span><span class="kw">objective</span>(littersMargModel)</a>
-<a class="sourceLine" id="cb3-2" title="2">cObjective &lt;-<span class="st"> </span><span class="kw">compileNimble</span>(rObjective, <span class="dt">project =</span> littersMargModel)</a></code></pre></div>
-<pre><code>## Compiling
-##   [Note] This may take a minute.
-##   [Note] Use &#39;showCompilerOutput = TRUE&#39; to see C++ compilation details.</code></pre>
-<p>Now let’s try using it.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" title="1"><span class="kw">system.time</span>(optR &lt;-<span class="st"> </span><span class="kw">optim</span>(<span class="kw">log</span>(<span class="kw">rep</span>(<span class="dv">1</span>,<span class="dv">4</span>)), rObjective<span class="op">$</span>run,</a>
-<a class="sourceLine" id="cb5-2" title="2">                 <span class="dt">control =</span> <span class="kw">list</span>(<span class="dt">fnscale =</span> <span class="dv">-1</span>)))</a></code></pre></div>
-<pre><code>##    user  system elapsed 
-##   3.065   0.000   3.066</code></pre>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" title="1"><span class="kw">system.time</span>(optC &lt;-<span class="st"> </span><span class="kw">optim</span>(<span class="kw">log</span>(<span class="kw">rep</span>(<span class="dv">1</span>,<span class="dv">4</span>)), cObjective<span class="op">$</span>run,</a>
-<a class="sourceLine" id="cb7-2" title="2">                 <span class="dt">control =</span> <span class="kw">list</span>(<span class="dt">fnscale =</span> <span class="dv">-1</span>)))</a></code></pre></div>
-<pre><code>##    user  system elapsed 
-##   0.010   0.000   0.011</code></pre>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" title="1">optR</a></code></pre></div>
-<pre><code>## $par
-## [1]  3.5802268  0.4638447  1.4091323 -0.5817455
-## 
-## $value
-## [1] -80.46196
-## 
-## $counts
-## function gradient 
-##      333       NA 
-## 
-## $convergence
-## [1] 0
-## 
-## $message
+<div id="more-details-on-querying-model-structure" class="slide section level1">
+<h1>More details on querying model structure</h1>
+<p>There are a variety of options to <code>getNodeNames()</code> and <code>getDependencies</code> that allow you to fine-tune the information you get.</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb21-1" title="1"><span class="kw">args</span>(model<span class="op">$</span>getDependencies)</a></code></pre></div>
+<pre><code>## function (nodes, omit = character(), self = TRUE, determOnly = FALSE, 
+##     stochOnly = FALSE, includeData = TRUE, dataOnly = FALSE, 
+##     includeRHSonly = FALSE, downstream = FALSE, returnType = &quot;names&quot;, 
+##     returnScalarComponents = FALSE) 
 ## NULL</code></pre>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" title="1">optC</a></code></pre></div>
-<pre><code>## $par
-## [1]  3.5802268  0.4638447  1.4091323 -0.5817455
-## 
-## $value
-## [1] -80.46196
-## 
-## $counts
-## function gradient 
-##      333       NA 
-## 
-## $convergence
-## [1] 0
-## 
-## $message
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb23-1" title="1"><span class="kw">args</span>(model<span class="op">$</span>getNodeNames)</a></code></pre></div>
+<pre><code>## function (determOnly = FALSE, stochOnly = FALSE, includeData = TRUE, 
+##     dataOnly = FALSE, includeRHSonly = FALSE, topOnly = FALSE, 
+##     latentOnly = FALSE, endOnly = FALSE, returnType = &quot;names&quot;, 
+##     returnScalarComponents = FALSE) 
 ## NULL</code></pre>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" title="1"><span class="kw">exp</span>(optC<span class="op">$</span>par)</a></code></pre></div>
-<pre><code>## [1] 35.8816770  1.5901760  4.0924031  0.5589219</code></pre>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb25-1" title="1">latents &lt;-<span class="st"> </span>model<span class="op">$</span><span class="kw">getNodeNames</span>(<span class="dt">latentOnly =</span> <span class="ot">TRUE</span>, <span class="dt">stochOnly =</span> <span class="ot">TRUE</span>,</a>
+<a class="sourceLine" id="cb25-2" title="2">        <span class="dt">includeData =</span> <span class="ot">FALSE</span>)</a>
+<a class="sourceLine" id="cb25-3" title="3">latents</a></code></pre></div>
+<pre><code>##  [1] &quot;p[1, 1]&quot;  &quot;p[1, 2]&quot;  &quot;p[1, 3]&quot;  &quot;p[1, 4]&quot;  &quot;p[1, 5]&quot;  &quot;p[1, 6]&quot; 
+##  [7] &quot;p[1, 7]&quot;  &quot;p[1, 8]&quot;  &quot;p[1, 9]&quot;  &quot;p[1, 10]&quot; &quot;p[1, 11]&quot; &quot;p[1, 12]&quot;
+## [13] &quot;p[1, 13]&quot; &quot;p[1, 14]&quot; &quot;p[1, 15]&quot; &quot;p[1, 16]&quot; &quot;p[2, 1]&quot;  &quot;p[2, 2]&quot; 
+## [19] &quot;p[2, 3]&quot;  &quot;p[2, 4]&quot;  &quot;p[2, 5]&quot;  &quot;p[2, 6]&quot;  &quot;p[2, 7]&quot;  &quot;p[2, 8]&quot; 
+## [25] &quot;p[2, 9]&quot;  &quot;p[2, 10]&quot; &quot;p[2, 11]&quot; &quot;p[2, 12]&quot; &quot;p[2, 13]&quot; &quot;p[2, 14]&quot;
+## [31] &quot;p[2, 15]&quot; &quot;p[2, 16]&quot;</code></pre>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb27-1" title="1">model<span class="op">$</span><span class="kw">getDependencies</span>(latents, <span class="dt">dataOnly =</span> <span class="ot">TRUE</span>)</a></code></pre></div>
+<pre><code>##  [1] &quot;r[1, 1]&quot;  &quot;r[1, 2]&quot;  &quot;r[1, 3]&quot;  &quot;r[1, 4]&quot;  &quot;r[1, 5]&quot;  &quot;r[1, 6]&quot; 
+##  [7] &quot;r[1, 7]&quot;  &quot;r[1, 8]&quot;  &quot;r[1, 9]&quot;  &quot;r[1, 10]&quot; &quot;r[1, 11]&quot; &quot;r[1, 12]&quot;
+## [13] &quot;r[1, 13]&quot; &quot;r[1, 14]&quot; &quot;r[1, 15]&quot; &quot;r[1, 16]&quot; &quot;r[2, 1]&quot;  &quot;r[2, 2]&quot; 
+## [19] &quot;r[2, 3]&quot;  &quot;r[2, 4]&quot;  &quot;r[2, 5]&quot;  &quot;r[2, 6]&quot;  &quot;r[2, 7]&quot;  &quot;r[2, 8]&quot; 
+## [25] &quot;r[2, 9]&quot;  &quot;r[2, 10]&quot; &quot;r[2, 11]&quot; &quot;r[2, 12]&quot; &quot;r[2, 13]&quot; &quot;r[2, 14]&quot;
+## [31] &quot;r[2, 15]&quot; &quot;r[2, 16]&quot;</code></pre>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb29-1" title="1">model<span class="op">$</span><span class="kw">getNodeNames</span>(<span class="dt">dataOnly =</span> <span class="ot">TRUE</span>)</a></code></pre></div>
+<pre><code>##  [1] &quot;r[1, 1]&quot;  &quot;r[1, 2]&quot;  &quot;r[1, 3]&quot;  &quot;r[1, 4]&quot;  &quot;r[1, 5]&quot;  &quot;r[1, 6]&quot; 
+##  [7] &quot;r[1, 7]&quot;  &quot;r[1, 8]&quot;  &quot;r[1, 9]&quot;  &quot;r[1, 10]&quot; &quot;r[1, 11]&quot; &quot;r[1, 12]&quot;
+## [13] &quot;r[1, 13]&quot; &quot;r[1, 14]&quot; &quot;r[1, 15]&quot; &quot;r[1, 16]&quot; &quot;r[2, 1]&quot;  &quot;r[2, 2]&quot; 
+## [19] &quot;r[2, 3]&quot;  &quot;r[2, 4]&quot;  &quot;r[2, 5]&quot;  &quot;r[2, 6]&quot;  &quot;r[2, 7]&quot;  &quot;r[2, 8]&quot; 
+## [25] &quot;r[2, 9]&quot;  &quot;r[2, 10]&quot; &quot;r[2, 11]&quot; &quot;r[2, 12]&quot; &quot;r[2, 13]&quot; &quot;r[2, 14]&quot;
+## [31] &quot;r[2, 15]&quot; &quot;r[2, 16]&quot;</code></pre>
 </div>
-<div id="writing-generic-functions" class="slide section level1">
-<h1>Writing generic functions</h1>
-<p>Let’s look back at our nimbleFunction objective function. What stops it from being usable on any model?</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" title="1">objective &lt;-<span class="st"> </span><span class="kw">nimbleFunction</span>(</a>
-<a class="sourceLine" id="cb15-2" title="2">    <span class="dt">setup =</span> <span class="cf">function</span>(model, target) {</a>
-<a class="sourceLine" id="cb15-3" title="3">          <span class="co">## We&#39;ll start putting stuff here soon, I promise!</span></a>
-<a class="sourceLine" id="cb15-4" title="4">          },</a>
-<a class="sourceLine" id="cb15-5" title="5">    <span class="dt">run =</span> <span class="cf">function</span>(<span class="dt">par =</span> <span class="kw">double</span>(<span class="dv">1</span>)) {</a>
-<a class="sourceLine" id="cb15-6" title="6">        <span class="kw">returnType</span>(<span class="kw">double</span>(<span class="dv">0</span>))</a>
-<a class="sourceLine" id="cb15-7" title="7">        <span class="kw">values</span>(model, target) &lt;&lt;-<span class="st"> </span><span class="kw">exp</span>(par)</a>
-<a class="sourceLine" id="cb15-8" title="8">        ans &lt;-<span class="st"> </span>model<span class="op">$</span><span class="kw">calculate</span>()</a>
-<a class="sourceLine" id="cb15-9" title="9">        <span class="kw">return</span>(ans)</a>
-<a class="sourceLine" id="cb15-10" title="10">    }</a>
-<a class="sourceLine" id="cb15-11" title="11">)</a></code></pre></div>
+<div id="inspecting-the-model-variables" class="slide section level1">
+<h1>Inspecting the model: variables</h1>
+<p>What are the variables in the model? What information is available about them?</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb31-1" title="1">model<span class="op">$</span><span class="kw">getVarNames</span>()</a></code></pre></div>
+<pre><code>## [1] &quot;r&quot;                                                                                                         
+## [2] &quot;lifted_mu_oBi_cB_tothe_2_times__oP1_minus_mu_oBi_cB_cP_over_sigma_oBi_cB_tothe_2_minus_mu_oBi_cB_L4&quot;       
+## [3] &quot;lifted_mu_oBi_cB_times__oP1_minus_mu_oBi_cB_cP_tothe_2_over_sigma_oBi_cB_tothe_2_plus_mu_oBi_cB_minus_1_L4&quot;
+## [4] &quot;p&quot;                                                                                                         
+## [5] &quot;mu&quot;                                                                                                        
+## [6] &quot;sigma&quot;</code></pre>
+<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb33-1" title="1">model<span class="op">$</span><span class="kw">getVarInfo</span>(<span class="st">&#39;mu&#39;</span>)</a></code></pre></div>
+<pre><code>## Reference class object of class &quot;varInfoClass&quot;
+## Field &quot;varName&quot;:
+## [1] &quot;mu&quot;
+## Field &quot;mins&quot;:
+## [1] 1
+## Field &quot;maxs&quot;:
+## [1] 2
+## Field &quot;nDim&quot;:
+## [1] 1
+## Field &quot;anyStoch&quot;:
+## [1] TRUE
+## Field &quot;anyDynamicallyIndexed&quot;:
+## [1] FALSE</code></pre>
+<p>As of the current version of NIMBLE, information about variables is not competely nicely arranged for a user (there aren’t as many query functions), but it is available.</p>
+<p>This variable has 1 dimension (<code>nDim</code>), and its size is 2 (<code>maxs</code>). Currently <code>mins</code> is always 1. If at least one node within the variable is stochastic, then <code>anyStoch</code> will be <code>TRUE</code>.</p>
 </div>
-<div id="writing-generic-functions---querying-model-structure" class="slide section level1">
-<h1>Writing generic functions - querying model structure</h1>
-<p>Calculating the density for all model nodes is not necessary for this optimization, since we’re doing maximum likelihood rather than maximum a posteriori (MAP) estimation. In particular we don’t need to calculate the prior density values.</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" title="1">objective &lt;-<span class="st"> </span><span class="kw">nimbleFunction</span>(</a>
-<a class="sourceLine" id="cb16-2" title="2">    <span class="dt">setup =</span> <span class="cf">function</span>(model, target) {</a>
-<a class="sourceLine" id="cb16-3" title="3">        <span class="co">## We only need to calculate the likelihood, not the full model density.  </span></a>
-<a class="sourceLine" id="cb16-4" title="4">        calcNodes &lt;-<span class="st"> </span>model<span class="op">$</span><span class="kw">getDependencies</span>(target, <span class="dt">self =</span> <span class="ot">FALSE</span>)</a>
-<a class="sourceLine" id="cb16-5" title="5">        <span class="kw">cat</span>(<span class="st">&quot;Maximixing w.r.t. &quot;</span>, <span class="kw">paste</span>(calcNodes, <span class="dt">collapse =</span> <span class="st">&#39;,&#39;</span>), <span class="st">&quot;.</span><span class="ch">\n</span><span class="st">&quot;</span>)</a>
-<a class="sourceLine" id="cb16-6" title="6">    },</a>
-<a class="sourceLine" id="cb16-7" title="7">    <span class="dt">run =</span> <span class="cf">function</span>(<span class="dt">par =</span> <span class="kw">double</span>(<span class="dv">1</span>)) {</a>
-<a class="sourceLine" id="cb16-8" title="8">        <span class="kw">returnType</span>(<span class="kw">double</span>(<span class="dv">0</span>))</a>
-<a class="sourceLine" id="cb16-9" title="9">        <span class="kw">values</span>(model, target) &lt;&lt;-<span class="st"> </span><span class="kw">exp</span>(par)</a>
-<a class="sourceLine" id="cb16-10" title="10">        ans &lt;-<span class="st"> </span>model<span class="op">$</span><span class="kw">calculate</span>(calcNodes)</a>
-<a class="sourceLine" id="cb16-11" title="11">        <span class="kw">return</span>(ans)</a>
-<a class="sourceLine" id="cb16-12" title="12">    }</a>
-<a class="sourceLine" id="cb16-13" title="13">)</a></code></pre></div>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" title="1">rObjective &lt;-<span class="st"> </span><span class="kw">objective</span>(littersMargModel, <span class="kw">c</span>(<span class="st">&#39;a&#39;</span>, <span class="st">&#39;b&#39;</span>)) <span class="co">## or c(&#39;a[1]&#39;,&#39;a[2]&#39;,&#39;b[1]&#39;,&#39;b[2]&#39;)</span></a></code></pre></div>
-<pre><code>## Maximixing w.r.t.  r[1, 1],r[1, 2],r[1, 3],r[1, 4],r[1, 5],r[1, 6],r[1, 7],r[1, 8],r[1, 9],r[1, 10],r[1, 11],r[1, 12],r[1, 13],r[1, 14],r[1, 15],r[1, 16],r[2, 1],r[2, 2],r[2, 3],r[2, 4],r[2, 5],r[2, 6],r[2, 7],r[2, 8],r[2, 9],r[2, 10],r[2, 11],r[2, 12],r[2, 13],r[2, 14],r[2, 15],r[2, 16] .</code></pre>
-<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb19-1" title="1">cObjective &lt;-<span class="st"> </span><span class="kw">compileNimble</span>(rObjective, <span class="dt">project =</span> littersMargModel)</a></code></pre></div>
-<pre><code>## Compiling
-##   [Note] This may take a minute.
-##   [Note] Use &#39;showCompilerOutput = TRUE&#39; to see C++ compilation details.</code></pre>
-<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb21-1" title="1">optC &lt;-<span class="st"> </span><span class="kw">optim</span>(<span class="kw">log</span>(<span class="kw">rep</span>(<span class="dv">1</span>,<span class="dv">4</span>)), cObjective<span class="op">$</span>run, <span class="dt">control =</span> <span class="kw">list</span>(<span class="dt">fnscale =</span> <span class="dv">-1</span>))</a>
-<a class="sourceLine" id="cb21-2" title="2">optC</a></code></pre></div>
-<pre><code>## $par
-## [1]  3.7726141  0.4646302  1.5975075 -0.5813183
-## 
-## $value
-## [1] -52.78522
-## 
-## $counts
-## function gradient 
-##      283       NA 
-## 
-## $convergence
-## [1] 0
-## 
-## $message
-## NULL</code></pre>
+<div id="the-importance-of-querying-a-model-lifted-nodes" class="slide section level1">
+<h1>The importance of querying a model: lifted nodes</h1>
+<p>You will have noticed a few strangely-named nodes, such as “lifted_mu_oBi_cB_tothe_2_times….”, in the model.</p>
+<p>NIMBLE implements some features by inserting its own nodes. In this case we reparameterize the model from the mean/sd parameterization of a beta distribution to the shape1/shape2 parameterization, and “lifted_mu_oBi_cB_tothe_2_times…” is the first shape parameter of the beta distribution for the first group.</p>
+<p><strong>You should never assume you know what nodes are in a model simply because you wrote the model code.</strong></p>
+<p>Let’s look at the two main ways this happens:</p>
+<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb35-1" title="1">code &lt;-<span class="st"> </span><span class="kw">nimbleCode</span>({</a>
+<a class="sourceLine" id="cb35-2" title="2">        tau <span class="op">~</span><span class="st"> </span><span class="kw">dunif</span>(<span class="dv">0</span>, <span class="dv">100</span>)</a>
+<a class="sourceLine" id="cb35-3" title="3">        x <span class="op">~</span><span class="st"> </span><span class="kw">dnorm</span>(<span class="dv">0</span>, tau) <span class="co">#by default, tau is a precision</span></a>
+<a class="sourceLine" id="cb35-4" title="4">})</a>
+<a class="sourceLine" id="cb35-5" title="5"></a>
+<a class="sourceLine" id="cb35-6" title="6"></a>
+<a class="sourceLine" id="cb35-7" title="7">m1 &lt;-<span class="st"> </span><span class="kw">nimbleModel</span>(code, <span class="dt">data =</span> <span class="kw">list</span>(<span class="dt">x =</span> <span class="fl">2.5</span>), <span class="dt">inits =</span> <span class="kw">list</span>(<span class="dt">tau =</span> <span class="dv">1</span>))</a></code></pre></div>
+<pre><code>## Defining model</code></pre>
+<pre><code>## Building model</code></pre>
+<pre><code>## Setting data and initial values</code></pre>
+<pre><code>## Running calculate on model
+##   [Note] Any error reports that follow may simply reflect missing values in model variables.</code></pre>
+<pre><code>## Checking model sizes and dimensions</code></pre>
+<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb41-1" title="1"><span class="kw">par</span>(<span class="dt">mfrow =</span> <span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">1</span>))</a>
+<a class="sourceLine" id="cb41-2" title="2"><span class="kw">plot</span>(m1<span class="op">$</span><span class="kw">getGraph</span>())</a></code></pre></div>
+<p><img src="data:image/png;base64,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" /></p>
+<div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb42-1" title="1">m1<span class="op">$</span><span class="kw">getNodeNames</span>()</a></code></pre></div>
+<pre><code>## [1] &quot;tau&quot;                          &quot;lifted_d1_over_sqrt_oPtau_cP&quot;
+## [3] &quot;x&quot;</code></pre>
+<p>The node <code>lifted_d1_over_sqrt_oPtau_cP</code> has been inserted between <code>tau</code> and <code>x</code>. The resulting model would equivalently have been created by this model code:</p>
+<div class="sourceCode" id="cb44"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb44-1" title="1"><span class="kw">nimbleCode</span>({</a>
+<a class="sourceLine" id="cb44-2" title="2">    tau <span class="op">~</span><span class="st"> </span><span class="kw">dunif</span>(<span class="dv">0</span>, <span class="dv">100</span>)</a>
+<a class="sourceLine" id="cb44-3" title="3">    lifted_d1_over_sqrt_oPtau_cP &lt;-<span class="st"> </span><span class="dv">1</span><span class="op">/</span><span class="kw">sqrt</span>(tau)</a>
+<a class="sourceLine" id="cb44-4" title="4">    x <span class="op">~</span><span class="st"> </span><span class="kw">dnorm</span>(<span class="dv">0</span>, <span class="dt">sd =</span> lifted_d1_over_sqrt_oPtau_cP) <span class="co"># override and make 2nd arg the SD</span></a>
+<a class="sourceLine" id="cb44-5" title="5">})</a></code></pre></div>
+<p>NIMBLE has <em>lifted</em> the calculation of standard deviation from precision so that it is part of the model’s graph. Therefore <em>you will make a mistake if you assume that the dependencies of <code>tau</code> include only <code>x</code></em>:</p>
+<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb45-1" title="1">m1<span class="op">$</span>tau &lt;-<span class="st"> </span><span class="dv">16</span></a>
+<a class="sourceLine" id="cb45-2" title="2">m1<span class="op">$</span>x &lt;-<span class="st"> </span><span class="dv">1</span></a>
+<a class="sourceLine" id="cb45-3" title="3">m1<span class="op">$</span><span class="kw">calculate</span>(<span class="kw">c</span>(<span class="st">&#39;tau&#39;</span>,<span class="st">&#39;x&#39;</span>)) <span class="co">## Wrong: the lifted node is being neglected</span></a></code></pre></div>
+<pre><code>## [1] -6.024109</code></pre>
+<div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb47-1" title="1">m1<span class="op">$</span><span class="kw">getParam</span>(<span class="st">&#39;x&#39;</span>, <span class="st">&#39;sd&#39;</span>)     <span class="co">## Verifying the sd is not up to date.</span></a></code></pre></div>
+<pre><code>## [1] 1</code></pre>
+</div>
+<div id="the-importance-of-querying-a-model-model-generic-programming" class="slide section level1">
+<h1>The importance of querying a model: model-generic programming</h1>
+<p>Instead we need to ask NIMBLE for the dependencies of any nodes that have changed and use <em>model-generic</em> programming:</p>
+<div class="sourceCode" id="cb49"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb49-1" title="1">deps &lt;-<span class="st"> </span>m1<span class="op">$</span><span class="kw">getDependencies</span>(<span class="st">&#39;tau&#39;</span>)</a>
+<a class="sourceLine" id="cb49-2" title="2">m1<span class="op">$</span>tau &lt;-<span class="st"> </span><span class="dv">16</span></a>
+<a class="sourceLine" id="cb49-3" title="3">m1<span class="op">$</span>x &lt;-<span class="st"> </span><span class="dv">1</span></a>
+<a class="sourceLine" id="cb49-4" title="4">m1<span class="op">$</span><span class="kw">calculate</span>(deps)    <span class="co">## Correct: the lifted node is updated too</span></a></code></pre></div>
+<pre><code>## [1] -12.13781</code></pre>
+<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb51-1" title="1">deps</a></code></pre></div>
+<pre><code>## [1] &quot;tau&quot;                          &quot;lifted_d1_over_sqrt_oPtau_cP&quot;
+## [3] &quot;x&quot;</code></pre>
+<div class="sourceCode" id="cb53"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb53-1" title="1">m1<span class="op">$</span><span class="kw">getParam</span>(<span class="st">&#39;x&#39;</span>, <span class="st">&#39;sd&#39;</span>)  <span class="co">## Verifying the sd is up to date</span></a></code></pre></div>
+<pre><code>## [1] 0.25</code></pre>
+<p>So the call to <em>calculate</em> causes the lifted node to get updated and then calculates the log probability density for <em>x</em>.</p>
 </div>
 </body>
 </html>

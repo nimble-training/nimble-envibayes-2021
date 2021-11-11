@@ -1,0 +1,192 @@
+---
+title: "Programming with models: Inspecting model structure"
+subtitle: "enviBayes 2021 tutorial"
+author: "NIMBLE Development Team"
+output:
+  html_document:
+    code_folding: show
+---
+
+```{r chunksetup, include=FALSE} 
+# include any code here you don't want to show up in the document,
+# e.g. package and dataset loading
+library(methods)  # otherwise new() not being found 
+library(nimble)
+read_chunk("chunks_litters.R")
+```
+
+# Running example: the litters model (reparameterized)
+
+Now let's explore how to understand the dependence structure of a model. The model is a directed acyclic graph, after all, so we should be able to work with that graph structure.
+
+We'll work with a different parameterization of the beta distribution to be able to illustrate additional concepts.
+
+```{r, litters-reparam-code}
+littersCode <- nimbleCode({
+  for (i in 1:G) {
+     for (j in 1:N) {
+        # likelihood (data model)
+        r[i,j] ~ dbin(p[i,j], n[i,j])
+        # latent process (random effects)
+        # note use of alternative parameterization and named parameters
+        p[i,j] ~ dbeta(mean = mu[i], sd = sigma[i])
+     }
+     # prior for hyperparameters
+     mu[i] ~ dflat()
+     sigma[i] ~ dunif(0, 100)
+   }
+})
+```
+
+```{r, litters-setup}
+G <- 2
+N <- 16
+n <- matrix(c(13, 12, 12, 11, 9, 10, 
+              9, 9, 8, 11, 8, 10, 13, 10, 12, 9, 10, 9, 10, 5, 9, 9, 13, 
+              7, 5, 10, 7, 6, 10, 10, 10, 7), nrow = 2)
+r <- matrix(c(13, 12, 12, 11, 9, 10, 9, 9, 8, 10, 8, 9, 
+     12, 9, 11, 8, 9, 8, 9, 4, 8, 7, 11, 4, 4, 5, 5, 3, 7, 3, 7, 0), 
+     nrow = 2)
+              
+littersConstants <- list(G = G, N = N, n = n)
+littersData <- list(r = r)
+littersInits <- list(mu = rep(0.5, 2), sigma = rep(3, 2))
+
+## create the NIMBLE model object
+model <- nimbleModel(littersCode, 
+          data = littersData, constants = littersConstants, inits = littersInits)
+```
+
+
+# Nodes and variables
+
+The parameters and data in a model are represented as nodes in a graph. Here we define some terms:
+
+ - parameter: an unknown quantity in the model that is represented as a random variable and will generally be estimated in an algorithm, e.g. `mu[1]` in the (reparameterized) litters model
+ - data: a known quantity in a model, also represented as a random variable, e.g., `r[1, 1], ..., r[1, 16], ...` in the litters model
+ - constants: other fixed quantities involved in the model, e.g., `N` in the litters model
+ - node: an element in the model graph representing data, parameter, or a deterministic quantity that is a function of other quantities in the model, e.g., `mu[1]`, `mu[2]`, or `p[1, 5]` in the litters model
+     - nodes can be univariate or multivariate depending on whether they are defined based on a univariate or multivariate density (or scalar or vectorized assignment for deterministic nodes)
+ - variable: a collection of one or more nodes with the same name, e.g., *mu* or *r* in the litters model. 
+
+# Querying nodes and variables
+
+NIMBLE provides users and programmers with the ability to get information about the nodes and variables in the model and the relationships amongst them.
+
+We can use NIMBLE to ask questions such as:
+
+ - What are the nodes in the model?
+ - What are the dependencies of a given node? Note that this is information used in many algorithms.
+
+
+```{r, model-nodes}
+nodes <- model$getNodeNames()
+nodes[1:11]
+top <- model$getNodeNames(topOnly = TRUE)
+top
+muDeps <- model$getDependencies('mu')
+muDeps[1:11]
+```
+
+# Data nodes
+
+```{r, model-data}
+model$getNodeNames(dataOnly = TRUE)
+model$isData('r')
+## parameters (including imputed data)
+model$getNodeNames(stochOnly = TRUE, includeData = FALSE)
+```
+
+# More details on querying model structure
+
+There are a variety of options to `getNodeNames()` and `getDependencies` that allow you to fine-tune the information you get.
+
+```{r, get-info}
+args(model$getDependencies)
+args(model$getNodeNames)
+
+latents <- model$getNodeNames(latentOnly = TRUE, stochOnly = TRUE,
+        includeData = FALSE)
+latents
+model$getDependencies(latents, dataOnly = TRUE)
+model$getNodeNames(dataOnly = TRUE)
+```
+
+# Inspecting the model: variables
+
+What are the variables in the model? What information is available about them?
+
+```{r, model-vars}
+model$getVarNames()
+model$getVarInfo('mu')
+```
+
+As of the current version of NIMBLE, information about
+variables is not competely nicely arranged for a user (there aren't as
+many query functions), but it is available.
+
+This variable has 1 dimension (`nDim`), and its size is 2 (`maxs`).  Currently `mins` is always 1.  If at least one node within the variable is stochastic, then `anyStoch` will be `TRUE`.
+
+
+# The importance of querying a model: lifted nodes
+
+You will have noticed a few strangely-named nodes, such as "lifted_mu_oBi_cB_tothe_2_times....", in the model.
+
+NIMBLE implements some features by inserting its own nodes. In this case we reparameterize the model from the mean/sd parameterization of a beta distribution to the shape1/shape2 parameterization, and "lifted_mu_oBi_cB_tothe_2_times..." is the first shape parameter of the beta distribution for the first group.
+
+**You should never assume you know what nodes are in a model simply because you wrote the model code.**
+
+Let's look at the two main ways this happens:
+
+```{r, lifted-1, fig.cap=""}
+code <- nimbleCode({
+        tau ~ dunif(0, 100)
+        x ~ dnorm(0, tau) #by default, tau is a precision
+})
+
+
+m1 <- nimbleModel(code, data = list(x = 2.5), inits = list(tau = 1))
+
+par(mfrow = c(1,1))
+plot(m1$getGraph())
+m1$getNodeNames()
+```
+The node `lifted_d1_over_sqrt_oPtau_cP` has been inserted between
+`tau` and `x`.   The resulting model would equivalently have been
+created by this model code:
+
+```{r, lifted-2, eval = FALSE}
+nimbleCode({
+    tau ~ dunif(0, 100)
+    lifted_d1_over_sqrt_oPtau_cP <- 1/sqrt(tau)
+    x ~ dnorm(0, sd = lifted_d1_over_sqrt_oPtau_cP) # override and make 2nd arg the SD
+})
+```
+
+NIMBLE has *lifted* the calculation of standard deviation from
+precision so that it is part of the model's graph.  Therefore *you
+will make a mistake if you assume that the dependencies of `tau`
+include only `x`*:
+
+```{r, bad}
+m1$tau <- 16
+m1$x <- 1
+m1$calculate(c('tau','x')) ## Wrong: the lifted node is being neglected
+m1$getParam('x', 'sd')     ## Verifying the sd is not up to date.
+```
+
+# The importance of querying a model: model-generic programming
+
+Instead we need to ask NIMBLE for the dependencies of any nodes that have changed and use *model-generic* programming:
+
+
+```{r, model-generic}
+deps <- m1$getDependencies('tau')
+m1$tau <- 16
+m1$x <- 1
+m1$calculate(deps)    ## Correct: the lifted node is updated too
+deps
+m1$getParam('x', 'sd')  ## Verifying the sd is up to date
+```
+
+So the call to *calculate* causes the lifted node to get updated and then calculates the log probability density for *x*.
