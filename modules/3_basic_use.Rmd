@@ -1,0 +1,251 @@
+---
+title: "Basic model building and MCMC"
+subtitle: "enviBayes 2021 tutorial"
+author: "NIMBLE Development Team"
+output:
+  html_document:
+    code_folding: show
+---
+
+```{r chunksetup, include=FALSE} 
+# include any code here you don't want to show up in the document,
+# e.g. package and dataset loading
+library(methods)  # otherwise new() not being found 
+library(nimble)
+```
+
+# A basic example
+
+Here we'll give a simple example of building a model and running a default MCMC. Other modules will show how one can fit the model and give more detail on various features of NIMBLE.
+
+We'll use the *litters* model example from BUGS. The data set describes survival of rat pups in a simple experiment.
+
+<center><img src="littersDAG.jpg"></center>
+
+
+# Specifying the BUGS code for a model
+
+Here we specify the litters code directly in R. We can walk through some of details via the comments in the BUGS code. The model is a binomial GLMM with $G=2$ groups of rat litters, and exchangeable litter-specific survival probabilities for the litters in each group. 
+
+
+```{r, litters-code}
+library(nimble)
+littersCode <- nimbleCode({
+  for (i in 1:G) {
+     for (j in 1:N) {
+        # Likelihood (data model)
+        r[i,j] ~ dbin(p[i,j], n[i,j])
+        # Latent process (random effects)
+        p[i,j] ~ dbeta(a[i], b[i]) 
+     }
+     # Priors for hyperparameters
+     a[i] ~ dgamma(1, .001)
+     b[i] ~ dgamma(1, .001)
+   }
+})
+```
+
+
+You can also load it directly from the standard BUGS example file formats (see `help(readBUGSmodel)`).
+
+# Building a model in NIMBLE
+
+In BUGS or JAGS (or Stan), one would provide the model code, input data and constant values, and (optionally) initial parameter values in one or two function calls, and the software would directly create and run an MCMC, returning the results to you.
+
+In NIMBLE, you have more fine-grained control over these steps. The first step is to build an R representation of the model.
+
+```{r, litters-model}
+## data and constants as R objects
+G <- 2
+N <- 16
+n <- matrix(c(13, 12, 12, 11, 9, 10, 
+              9, 9, 8, 11, 8, 10, 13, 10, 12, 9, 10, 9, 10, 5, 9, 9, 13, 
+              7, 5, 10, 7, 6, 10, 10, 10, 7), nrow = 2)
+r <- matrix(c(13, 12, 12, 11, 9, 10, 9, 9, 8, 10, 8, 9, 
+     12, 9, 11, 8, 9, 8, 9, 4, 8, 7, 11, 4, 4, 5, 5, 3, 7, 3, 7, 0), 
+     nrow = 2)
+              
+littersConsts <- list(G = G, N = N, n = n)
+littersData <- list(r = r)
+littersInits <- list( a = c(2, 2), b=c(2, 2) )
+
+## create the NIMBLE model object
+littersModel <- nimbleModel(littersCode, 
+          data = littersData, constants = littersConsts, inits = littersInits)
+```
+
+If all you want to do is run an MCMC, NIMBLE's fine-grained control might not be so interesting to you, in which case you can just use `nimbleMCMC()` without using `nimbleModel()` to create the model. But by providing an explicit model object, we allow you to operate the model and program with it.
+
+# Compiling a model
+
+In general, you'll want a version of the model that allows for fast computation (this can then be used by any algorithms you use on the model).
+
+To create a fast compiled version of the model, you simply do this.
+
+```{r, compile-model}
+cLittersModel <- compileNimble(littersModel)
+```
+# Operating a model
+
+You can view and manipulate the values of variables in the model, and calculate (prior or likelihood) densities and simulate from the prior or likelihood in a model.
+
+In later modules, we'll see why this is useful for
+
+ - programming algorithms
+ - working with your model (e.g., doing a simulation study)
+
+(Note that the initial NA values for *p* explain the earlier message about the model not being fully initialized.)
+
+```{r operate-model}
+cLittersModel$p
+cLittersModel$calculate('a')   # log-prior density
+cLittersModel$getLogProb('a')
+
+cLittersModel$a <- c(3, 3)
+cLittersModel$calculate('a')   # updated log-prior density
+
+set.seed(1)  # so the calculations are reproducible
+littersModel$simulate('p')  # simulate from prior
+littersModel$p
+littersModel$getLogProb('p')  # log prob not yet updated!
+littersModel$calculate('p')   # update it
+littersModel$getLogProb('p')  # now we're good
+```
+
+# Setting up an MCMC such that it could be customized
+
+Much of the power of NIMBLE comes from the ability to customize algorithms in NIMBLE, including how MCMC sampling works.
+
+In order to talk about MCMC customization in Module 5, we first need to see the 'manual' steps of running an MCMC in NIMBLE (as a contrast to the one-click MCMC seen in the previous slide).
+
+The steps of running an MCMC are as follows:
+
+ 1. configure the MCMC (via `configureMCMC()`)
+ 2. build the MCMC (via `buildMCMC()`)
+ 3. create a compiled version of the MCMC (via `compileNimble()`)
+ 4. run the MCMC (via `runMCMC()`)
+ 5. assess and use the MCMC samples (e.g., using CODA tools)
+
+Note that `nimbleMCMC()` combines steps 1-4 (and in fact does not even require you to create the model). See the last slide.
+
+# Configuring a basic MCMC
+
+Setting up and running an MCMC in NIMBLE in this way takes a few more steps than in BUGS or JAGS, but with the benefit of giving the user much more control of how the MCMC operates.
+
+First we *configure* the MCMC, which means setting up the samplers to be used for each node or group of nodes. NIMBLE provides a default configuration, but we'll see shortly how you can modify that. 
+
+```{r, configureMCMC}
+littersConf <- configureMCMC(littersModel, print = TRUE)
+```
+You also specify the nodes for which you'd like to get the MCMC samples as output. (NIMBLE defaults to only monitoring the "top-level" nodes, i.e., hyperparameters with no stochastic parents.
+
+```{r, monitor}
+littersConf$addMonitors(c('a', 'b', 'p'))
+```
+
+# Building the MCMC algorithm for the model 
+
+Next we'll build the MCMC algorithm for the model under the default configuration. And we'll create a compiled (i.e., C++) version of the MCMC that is equivalent in functionality but will run much faster.
+
+```{r build-mcmc}
+littersMCMC <- buildMCMC(littersConf)
+cLittersMCMC <- compileNimble(littersMCMC, project = littersModel)
+```
+
+(The *project* argument helps us manage all the C++ that is generated for a given analysis. In general the project can be referenced using the name of the original (uncompiled) model.)
+
+# Running the MCMC
+
+Now let's run the MCMC.
+
+Sidenote: We don't recommend running the R version of the MCMC for very many iterations - it's really slow - in part because iterating in R is slow and in part because iterating with a model in NIMBLE requires even more overhead. The R and C MCMC samples are the same, so you can use the R MCMC for debugging. It's possible to step through the code line by line using R's debugging capabilities (not shown).
+
+```{r run-mcmc}
+niter <- 1000
+nburn <- 100
+set.seed(1)
+inits <- function() {
+      a <- runif(G, 1, 20)
+      b <- runif(G, 1, 20)
+      p <- rbind(rbeta(N, a[1], b[1]), rbeta(N, a[2], b[2]))
+      return(list(a = a, b = b, p = p))
+}             
+print(system.time(samples <- runMCMC(cLittersMCMC, niter = niter, nburnin = nburn,
+                          inits = inits, nchains = 3, samplesAsCodaMCMC = TRUE)))
+```
+
+# Working with MCMC output
+
+
+Now let's look at the MCMC performance from one of the chains.
+
+```{r output-mcmc, fig.height=6, fig.width=12, fig.cap=''}
+samples1 <- samples[[1]]
+
+par(mfrow = c(2, 2), mai = c(.6, .5, .4, .1), mgp = c(1.8, 0.7, 0))
+ts.plot(samples1[ , 'a[1]'], xlab = 'iteration',
+     ylab = expression(a[1]), main = expression(a[1]))
+ts.plot(samples1[ , 'b[1]'], xlab = 'iteration',
+     ylab = expression(b[1]), main = expression(b[1]))
+ts.plot(samples1[ , 'a[2]'], xlab = 'iteration',
+     ylab = expression(a[2]), main = expression(a[2]))
+ts.plot(samples1[ , 'b[2]'], xlab = 'iteration',
+     ylab = expression(b[2]), main = expression(b[2]))
+```
+
+Not good. We'll explore different sampling strategies that fix the problems in later modules.
+
+# Using CODA
+
+NIMBLE does not provide any MCMC diagnostics. (At least not yet; there's no reason one couldn't write code for various diagnostics using the NIMBLE system.)  But one can easily use CODA or other R packages with the MCMC output from a NIMBLE MCMC.
+
+```{r coda}
+library(coda, warn.conflicts = FALSE)
+crosscorr(samples1[ , c('a[1]', 'b[1]', 'a[2]', 'b[2]')])
+effectiveSize(samples1)  ## ESS
+```
+
+To apply the commonly used Gelman-Rubin potential scale reduction factor diagnostic, we'll need the multiple chains.
+
+Considerations: you'll want to think about how to set up the over-dispersed starting points and the number of iterations to use for burn-in.
+
+# Assessing MCMC performance from multiple chains
+
+```{r, gelman-rubin, fig.cap='', fig.height=6, fig.width=12}
+par(mfrow = c(1,1))
+gelman.diag(samples)
+## and here's a graphical representation of the information
+par(mfrow = c(1, 2))
+ts.plot(samples[[1]][ , 'a[1]'], xlab = 'iteration',
+     ylab = expression(a[1]), main = expression(a[1]))
+sq <- seq_along(samples[[1]][ , 'a[1]'])
+for(i in 2:3)
+      lines(sq, samples[[i]][ , 'a[1]'], col = i)
+ts.plot(samples[[1]][ , 'b[1]'], xlab = 'iteration',
+     ylab = expression(b[1]), main = expression(b[1]))
+sq <- seq_along(samples[[1]][ , 'b[1]'])
+for(i in 2:3)
+      lines(sq, samples[[i]][ , 'b[1]'], col = i)
+```
+
+# Other MCMC tools in NIMBLE
+
+  - WAIC for model comparison
+  - variable selection via reversible jump MCMC
+  - cross-validation 
+  - (coming soon) calibrated posterior predictive p-values
+
+# One-click MCMC operation: `nimbleMCMC`
+
+```{r, litters-nimbleMCMC, fig.cap='', fig.width=12, fig.height=8}
+source('chunks_litters.R')
+samples <- nimbleMCMC(code = littersCode, data = littersData, inits = littersInits,
+                      constants = littersConstants, monitors = c("a", "b", "p"),
+                      thin = 1, niter = 1100, nburnin = 100, nchains = 1,
+                      setSeed = TRUE)
+par(mfrow = c(2, 2), cex = 1.2, mgp = c(1.8, 0.7, 0), mai = c(0.75, 0.75, 0.1, 0.1))
+ts.plot(samples[ , 'a[1]'], xlab = 'iteration', ylab = expression(a[1]))
+ts.plot(samples[ , 'a[2]'], xlab = 'iteration', ylab = expression(a[2]))
+ts.plot(samples[ , 'b[1]'], xlab = 'iteration', ylab = expression(b[1]))
+ts.plot(samples[ , 'b[2]'], xlab = 'iteration', ylab = expression(b[2]))
+```

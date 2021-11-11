@@ -1,0 +1,222 @@
+---
+title: "How NIMBLE's model language differs from BUGS and JAGS"
+subtitle: "enviBayes 2021 tutorial"
+author: "NIMBLE Development Team"
+output:
+  html_document:
+    code_folding: show
+    toc: yes
+---
+
+```{r setup, include=FALSE} 
+library(methods) ## needed only when building documents outside of R
+library(nimble)
+```
+
+# How NIMBLE is the same as BUGS and JAGS
+
+* Most distributions and functions are supported
+
+    - For distributions, see [User Manual Section 5.2.4](http://r-nimble.org/manuals/NimbleUserManual.pdf#page=39)
+    - For functions, see  [User Manual Section 5.2.5](http://r-nimble.org/manuals/NimbleUserManual.pdf#page=44)
+	
+* Most syntax is supported
+
+    - Truncation syntax is different when using `nimbleCode`.  (It can
+      be the same as for JAGS if reading code from a file with `readBUGSmodel()`).
+
+See our [guide online](https://r-nimble.org/quick-guide-for-converting-from-jags-or-bugs-to-nimble).
+
+
+# How NIMBLE extends BUGS
+
+  - Alternative distribution parameterizations (like R).
+  - Named parameters (like R).
+  - Vectorized math and linear algebra.
+  - Definition-time if-then-else (multiple model variants from the same code).
+  - User-defined functions and distributions.
+  - Distinction between `constants` and `data`.
+
+### How NIMBLE is limited compared to BUGS and/or JAGS:
+
+   - NIMBLE is stricter about requiring square brackets and
+   informative indices for non-scalar nodes.
+
+# R-like alternative and named parameters
+
+Note named parameters in distributions.
+
+```{r, litters-model-param, eval=FALSE}
+
+littersCode <- nimbleCode({
+  for (i in 1:G) {
+     for (j in 1:N) {
+     	# likelihood (data model)
+        r[i,j] ~ dbin(p[i,j], n[i,j])
+	# latent process (random effects)
+        p[i,j] ~ dbeta(a[i], b[i]) 
+     }
+     # prior for hyperparameters
+     a[i] ~ dgamma(shape = 1, rate = .001)
+     b[i] ~ dgamma(shape = 1, scale = 1/.001)
+   }
+})
+```
+
+Note that we could have used the mean/sd parameterization of the beta distribution, which would then require different hyperparameter specification.
+
+- BUGS/JAGS: Only `dnorm(mu, tau)` is supported, where `tau` is precision.
+- NIMBLE: Alternative parameterizations and named parameters are supported:
+
+    - `dnorm(mean = mu, sd = sigma)`
+    - `dnorm(mean = mu, var = sigma_squared)`
+    - `dnorm(mean = mu, tau = phi)` 
+    
+- Distributions with alternative parameterizations are listed in Table 5.2 of [User Manual Section 5.2.4](https://r-nimble.org/html_manual/cha-writing-models.html#subsec:dists-and-functions)
+
+
+# Extensibility: new functions and distributions
+
+We will cover this in depth later.
+
+# Distinction between data and constants
+
+- Constants must be provided to `nimbleModel`
+
+    - Constants are values needed to define model relationships
+
+        - Index ranges like *N* in the litters model
+        - Constant vectors used for indexing: e.g., *block* in `mu[block[i]]`
+
+- Data can be provided to `nimbleModel` or later after a model is already created
+
+    - Data represents a flag on the role graph nodes play in the model
+
+        - Data nodes shouldn't be sampled in an MCMC
+
+    - Data values can be changed.
+
+Here's an example:
+
+```{r, data-example}
+if(!exists('littersModel'))
+    source('chunks_litters.R')
+littersModel$isData('r')
+littersModel$isData('p')
+littersModel$r
+littersModel$p
+littersModel$simulate('r')
+littersModel$simulate('p')
+littersModel$r
+littersModel$p
+littersModel$simulate('r', includeData = TRUE)
+littersModel$r
+```
+
+- NIMBLE will usually disambiguate data when it is provided as constants.
+
+# Constants vs. right-hand side nodes
+
+Regression predictors (i.e., covariates or independent variables) can be treated either as constants or as variables in the model. The latter allows one to change the values after the model is built. 
+
+When a variable is specified only on the right-hand side of expression(s) in the model, it does not become a graph node in the model because it is not a parameter or data, but it is a variable in the model that can be assigned new values. 
+
+(Regression predictors can also be specified as *data* though they do not play the role of data in terms of the likelihood.)
+
+# More explicit need to provide dimensions (in models, not in nimbleFunctions)
+
+- Square brackets must always be provided to indicate number of dimensions
+
+    - If `x` is 2-dimensional, use `x[,] %*% beta[]`, not `x %*% beta`
+    
+* Sometimes NIMBLE is not as smart as BUGS/JAGS at determining dimensions.  There are two solutions:
+
+    * Give dimensions explicitly: `x[1:n, 1:m]`, OR
+    * Provide a `dimensions` argument to `nimbleModel`.  Example: `dimensions = list(x = c(n, m))`.
+
+# Vectorized math and linear algebra
+
+Instead of writing this in your model code:
+
+```{r, vectorized-1}
+nimbleOptions(verbose = FALSE)
+m1 <- nimbleModel(
+    nimbleCode({
+        for(i in 1:5) {
+            predicted[i] <- beta0 + beta1 * x[i]
+        }
+    }
+    ))
+```
+you can write this:
+```{r, vectorized-2}
+m2 <- nimbleModel(
+    nimbleCode({
+        predicted[1:5] <- beta0 + beta1 * x[1:5]
+    }
+    ))
+```
+
+They are not equivalent:
+```{r, vectorized-3}
+## m1 has 5 scalar nodes
+m1$getNodeNames()
+## m2 has 1 vector node
+m2$getNodeNames()
+```
+
+One is not necessarily better than the other.  It depends on the model
+and the MCMC configuration.  (More on those topics later.)
+
+Vectorized declarations do not work for distributions.
+
+# Be careful about scalar vs. vector vs. matrix vs. array
+
+This will not work:
+```{r eval = FALSE}
+x[1:5] <- A[1:5, 1:5] %*% b[1:5] + c[1:5]
+```
+
+The problem is that the right-hand-side returns a matrix, so we can't assign it to a vector.
+
+This will work:
+```{r eval = FALSE}
+x[1:5] <- (A[1:5, 1:5] %*% b[1:5] + c[1:5])[,1]
+```
+
+# Definition-time if-then-else
+
+If you wish to define multiple alternative models in one set of code,
+you can use if-then-else statements.  These will be evaluated based on
+variables in the R environment when the model is defined. **You cannot
+use if statements as statements within model code apart from this usage
+of definining alternative models.**
+
+For example:
+
+```{r if-then-else}
+code <- nimbleCode({
+    sigma ~ dunif(0, 10)
+    beta0 ~ dnorm(0, sd = 1000)
+    beta1 ~ dnorm(0, sd = 1000)
+    if(INCLUDE_X2) { beta2 ~ dnorm(0, sd = 1000) } else {}
+    for(i in 1:10) {
+        if(INCLUDE_X2) {
+            y[i] ~ dnorm(beta0 + beta1 * x1[i] + beta2 * x2[i], sd = sigma)
+        } else {
+            y[i] ~ dnorm(beta0 + beta1 * x1[i], sd = sigma)
+        }
+    }
+})
+
+INCLUDE_X2 <- FALSE
+m1 <- nimbleModel(code)
+INCLUDE_X2 <- TRUE
+m2 <- nimbleModel(code)
+m1$getNodeNames()
+m2$getNodeNames()
+
+```
+
+m2 has `beta2` while m1 does not.  The long names are "lifted nodes" -- more on those later.
+

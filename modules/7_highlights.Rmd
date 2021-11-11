@@ -1,0 +1,29 @@
+---
+title: "Highlights of NIMBLE tools"
+subtitle: "enviBayes 2021 tutorial"
+author: "NIMBLE Development Team"
+output:
+  html_document:
+    code_folding: show
+---
+
+
+```{r chunksetup, include=FALSE} 
+# include any code here you don't want to show up in the document,
+# e.g. package and dataset loading
+library(methods)  # otherwise new() not being found - weird
+library(nimble)
+```
+
+# Introduction
+
+This module briefly covers highlights of various functionality in NIMBLE, namely:
+
+ - Bayesian nonparametric mixture modeling (e.g., Dirichlet processes)
+ - Reversible jump for variable selection
+ - Conditional autoregressive (CAR) modeling
+ - WAIC for model comparison/selection
+ - calling external code (e.g., C++ or R) in models or algorithms
+
+# UNDER CONSTRUCTION
+ 

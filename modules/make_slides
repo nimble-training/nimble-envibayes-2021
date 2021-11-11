@@ -1,0 +1,20 @@
+#! /usr/bin/Rscript
+# usage:
+# ./make_slides overview
+# cd modules; ../make_slides nimble_bugs
+# etc.
+
+library(knitr)
+library(rmarkdown)
+
+module <- commandArgs(trailingOnly = TRUE)
+source <- paste(module, ".Rmd", sep = "")
+
+if (file.exists(source)){
+    knit(source, envir = new.env())
+    render(source, 'html_document', envir = new.env()) # for style that can hide code chunks dynamically
+    file.rename(paste0(module, ".html"), paste0(module, "_onepage.html"))
+    system(paste("pandoc -s --webtex -t slidy ", paste(module, ".md", sep = ""), " -o ", paste(module, ".html", sep = ""), " --self-contained"))    # purl(source) ## make separate .R file with just the code
+} else {
+    cat("Error: ", source, " does not exist.\n")
+}

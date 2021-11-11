@@ -1,0 +1,61 @@
+---
+title: "NIMBLE background"
+subtitle: "enviBayes 2021 tutorial"
+author: "NIMBLE Development Team"
+output:
+  html_document:
+    code_folding: show
+---
+
+
+# What is NIMBLE?
+
+Numerical Inference for statistical Models using Bayesian and Likelihood Estimation
+
+- A framework for hierarchical statistical models and methods.
+- A nearly drop-in alternative to WinBUGS, OpenBUGS and JAGS.
+- An extension of the BUGS language for writing new functions and distributions.
+- A system for using algorithms on hierarchical statistical models
+   - A configurable system for MCMC.
+   - A library of other methods.
+- A system for programming algorithms to be used on hierarchical models
+- A partial compiler for math, flow control, and related syntax in R
+
+
+We have an extensive website ([https://r-nimble.org](r-nimble.org)) with a detailed User Manual, examples, and other information.
+
+# NIMBLE components
+
+* Model language: A new, extended dialect of BUGS/JAGS for specifying models
+* A package of algorithms (MCMC, SMC, MCEM)
+* Algorithm language: nimbleFunctions, embedded within R for writing algorithms
+* Compiler: Generates and compiles C++ from models and algorithms
+
+# Why NIMBLE?
+
+Here are some of the features you can do in NIMBLE that we are most excited about and that distinguish NIMBLE from other software:
+
+- customize your MCMCs, including choosing what parameters to block
+- define your own distributions and functions for use in BUGS code
+- use a variety of algorithms on your model, including MCMC, sequential Monte Carlo (particle filtering), and MCEM
+- write an algorithm in our system for easy dissemination to others, including your own MCMC samplers
+- call out to arbitrary external (C++, R, etc.) code within a model or algorithm
+- compile mathematical operations in R without needing to know or write C or C++
+
+# Why Not NIMBLE?
+
+ - For MCMCs that rely heavily on Gibbs sampling, JAGS may be a bit faster because of more efficient internal implementation of the calculations.
+ - For certain model structures, Hamiltonian Monte Carlo, such as implemented in Stan or PyMC, may work better than the default MCMC samplers in NIMBLE.
+   1. That said, in a number of examples we've tried we've been able to achieve comparable or better performance either out-of-the-box or with some relatively simple modifications to the model or the MCMC samplers.
+   2. And yet, sometimes customization is time-consuming and requires specialized knowledge.
+  
+ - NIMBLE can take a long time to build algorithms for models that have tens of thousands or more nodes (though once built, the algorithm run times can be quite good). We anticipate big improvements in future versions of NIMBLE.
+
+# Getting help with NIMBLE
+
+* User manual ([html](https://r-nimble.org/html_manual/cha-welcome-nimble.html) or [pdf](https://r-nimble.org/manuals/NimbleUserManual.pdf))
+* Post to the [NIMBLE user group](https://groups.google.com/forum/#!forum/nimble-users)
+* If necessary, email [nimble.stats@gmail.com](the NIMBLE development team)
+* Follow announcements via the [NIMBLE announcements list](https://groups.google.com/forum/#!forum/nimble-announce)
+
+
