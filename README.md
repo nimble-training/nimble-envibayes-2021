@@ -2,15 +2,21 @@
 
 Materials for NIMBLE (virtual) tutorial for the enviBayes section of ISBA 
 
-[2021-11-11: Content is under construction.]
-
-All materials for the workshop will be here. If you're familiar with Git/Github, you already know how to get all the materials on your computer. If you're not, simply click [here](https://github.com/nimble-training/nimble-envibayes-2021/archive/main.zip).
-
-Get started [here](https://htmlpreview.github.io/?https://github.com/nimble-training/nimble-envibayes-2021/blob/main/overview_slides.html) with logistical information and an outline of the workshop content.
-
 Time: 11 am - 1 pm, Eastern U.S. time, Friday November 19.
 
+[2021-11-11: Content is mostly stable, except for module 7.]
+
+All materials for the workshop will be here. If you're familiar with Git/GitHub, you already know how to get all the materials on your computer. If you're not, simply click [here](https://github.com/nimble-training/nimble-envibayes-2021/archive/main.zip).
+
+## Preparation
+
+[Get started here](https://htmlpreview.github.io/?https://github.com/nimble-training/nimble-envibayes-2021/blob/main/overview.html) with logistical information and an outline of the workshop content. Links to all the modules appear in the last slide.
+
+Given we only have two hours, we'll go through the introductory material quickly, so you might want to look through Modules 1-2 on your own in advance. In particular, if you're not familiar with writing models in the model language used in BUGS, JAGS, and NIMBLE, I recommend you take some time to look through Module 2.
+
 ## Installing NIMBLE
+
+Ideally you'll have installed NIMBLE in advance so that you can follow along in a hands-on fashion. However, given this is a short tutorial, there won't be much time for hands-on work, so you'll be able to follow along without having NIMBLE installed.
 
 NIMBLE is an R package on CRAN, so in general it will be straightforward to install as with any R package, but you do need a compiler and related tools on your system.  
 
@@ -31,4 +37,4 @@ model <- nimbleModel(code)
 cModel <- compileNimble(model)
 ```
 
-If that runs without error, you're all set. If not, please see the troubleshooting tips and email me directly if you can't get things going. Also note that given this is a short tutorial, there won't be much time for hands-on work, so you'll be able to follow along without having NIMBLE installed.
+If that runs without error, you're all set. If not, please see the troubleshooting tips and email me directly if you can't get things going. 
