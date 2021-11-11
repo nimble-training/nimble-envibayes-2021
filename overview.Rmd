@@ -1,5 +1,5 @@
 ---
-title: "Programming with hierarchical statistical models: Using the flexible NIMBLE system for MCMC and more"
+title: "Developing, modifying, and sharing Bayesian algorithms (MCMC samplers, SMC, and more) using the NIMBLE platform in R"
 subtitle: "enviBayes tutorial"
 author: "Chris Paciorek, Department of Statistics, UC Berkeley"
 output:
@@ -20,6 +20,22 @@ If you're not familiar with Git, you can get these materials by simply going to 
 
 Please ask questions and make comments as we go through the material.
 
+# How we'll operate
+
+The workshop will be organized in modules, each of which will be a combination of lecture/demo presentation. 
+
+# Suggestions on how to get the most out of the workshop
+
+I encourage you to:
+
+- try out the code as we walk through it
+-  keep your eyes open! -- We'll illustrate a lot of syntax and concepts by example
+- try to guess what the syntax means in cases we haven't yet seen that syntax
+- play with it and try variations and try to break it and see what happens
+- post a comment on the Etherpad if something interesting happens as you experiment
+- ask questions!
+
+
 A few additional thoughts on my pedagogical philosophy here:
 
 - I want to expose you to a lot of tools and ideas that you can come back to when you need them and when you have time for more depth.
@@ -30,7 +46,7 @@ A few additional thoughts on my pedagogical philosophy here:
 
 We'll present most of the material from within RStudio, using R Markdown documents with embedded R code. R Markdown is an extension to the Markdown markup language that makes it easy to write HTML in a simple plain text format.  This allows us to both run the R/NIMBLE code directly as well as compile on-the-fly to an HTML file that can be used for presentation. All files will be available on [GitHub](https://github.com/nimble-training/nimble-envibayes-2021).  
 
-Note: The files named *foo.html* have individual slides, while the files named *foo_onepage.html* have the same content but all on one page.
+Note: The files named *foo_slides.html* have individual slides, while the files named *foo.html* have the same content but all on one page.
 
 Warning: in some cases the processing of the R code in the R Markdown is screwy and the slides have error messages that do not occur if you just run the code directly in R or RStudio. 
 
@@ -91,7 +107,7 @@ More details can also be found in Section 4 of the [NIMBLE manual](https://r-nim
 
 Here are the modules we'll work through for this short course.
 
- - Introduction to NIMBLE (20 minutes)
+ - Introduction to NIMBLE (15 minutes)
  
     1. [Overview of NIMBLE](modules/1_nimble_background.html)
     2. [(Omitted) The BUGS language](modules/2_bugs_language.html)
@@ -108,7 +124,7 @@ Here are the modules we'll work through for this short course.
  - Highlights of special features in NIMBLE (20 minutes)
     7. [NIMBLE highlights](modules/7_highlights)
 
- - Programming algorithms in NIMBLE (30 minutes)
+ - Programming algorithms in NIMBLE (35 minutes)
  
     8. [nimbleFunction example: maximum (marginal) likelihood](modules/8_basic_nimbleFunction.html) 
     9. [Operating a NIMBLE model](modules/9_operating_model.html)

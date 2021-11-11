@@ -10,7 +10,7 @@ All materials for the workshop will be here. If you're familiar with Git/GitHub,
 
 ## Preparation
 
-[Get started here](https://htmlpreview.github.io/?https://github.com/nimble-training/nimble-envibayes-2021/blob/main/overview.html) with logistical information and an outline of the workshop content. Links to all the modules appear in the last slide.
+[Get started here](https://htmlpreview.github.io/?https://github.com/nimble-training/nimble-envibayes-2021/blob/main/overview.html) with logistical information and an outline of the workshop content. Links to all the modules appear at the bottom of the document.
 
 Given we only have two hours, we'll go through the introductory material quickly, so you might want to look through Modules 1-2 on your own in advance. In particular, if you're not familiar with writing models in the model language used in BUGS, JAGS, and NIMBLE, I recommend you take some time to look through Module 2.
 

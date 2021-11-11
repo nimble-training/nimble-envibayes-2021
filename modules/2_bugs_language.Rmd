@@ -24,6 +24,7 @@ The BUGS language is described in detail in the NIMBLE manual and in the [releva
 ### Stochastic declarations
 
   - `x ~ dgamma(shape, scale)` (`x` follows a gamma distribution with parameters `shape` and `scale`)
+  - `y[1:3]` ~ dmnorm(theta[1:3], omega[1:3, 1:3])` (`y[1:3]` follows a multivariate normal distribution with parameters `mean` and `precision`)
 
 ### Deterministic declarations
 
