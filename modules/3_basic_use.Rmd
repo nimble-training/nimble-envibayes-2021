@@ -130,6 +130,8 @@ Note that `nimbleMCMC()` combines steps 1-4 (and in fact does not even require y
 
 # Configuring a basic MCMC
 
+At a high level, NIMBLE (like BUGS and JAGS) uses a "Gibbs" style MCMC that loops over parameters. Individual samplers (e.g., conjugate, Metropolis, slice, etc.) assigned to individual parameters or blocks of parameters. In contrast, Stan and PyMC3 assign a Hamiltonian Monte Carlo sampler to the entire vector of parameters. 
+
 Setting up and running an MCMC in NIMBLE in this way takes a few more steps than in BUGS or JAGS, but with the benefit of giving the user much more control of how the MCMC operates.
 
 First we *configure* the MCMC, which means setting up the samplers to be used for each node or group of nodes. NIMBLE provides a default configuration, but we'll see shortly how you can modify that. 
