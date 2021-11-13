@@ -2,7 +2,7 @@
 
 Materials for NIMBLE (virtual) tutorial for the enviBayes section of ISBA 
 
-Time: 11 am - 1 pm, Eastern U.S. time, Friday November 19.
+Time: 11 am - 1 pm, Eastern U.S. time, Thursday November 18.
 
 [2021-11-11: Content is mostly stable, except for module 7.]
 
