@@ -8,12 +8,7 @@ output:
 ---
 
 
-```{r chunksetup, include=FALSE} 
-# include any code here you don't want to show up in the document,
-# e.g. package and dataset loading
-library(methods)  # otherwise new() not being found - weird
-library(nimble)
-```
+
 
 # Introduction
 
@@ -45,7 +40,8 @@ The basic idea is to model an unknown distribution as a mixture of an unknown nu
 
 BNP mixture models can be used to directly model data or to model random effects. Here's an example of some code for modeling random effects:
 
-```{r, eval=FALSE}
+
+```r
 for(i in 1:n) {
     gamma[i] ~ dnorm(mu[i], var = tau[i]) # mixture of normal densities
     mu[i] <- muTilde[xi[i]]               # mean for component assigned to i'th study
@@ -75,7 +71,8 @@ RJ in nimble turns off and on variables in regression-style models. This can be 
 
 Here are some code snippets:
 
-```{r, eval=FALSE}
+
+```r
 code <- nimbleCode({
    for(i in 1:n) 
       y[i] ~ dnorm(beta0 + beta1*x1[i] + beta2*x2[i], sd = sigma)
@@ -125,7 +122,8 @@ NIMBLE provides:
 
 Here's some syntax for the different WAIC variations:
 
-```{r, eval=FALSE}
+
+```r
 ## Conditional WAIC without data grouping:
 conf <- configureMCMC(Rmodel, enableWAIC = TRUE)
 
@@ -147,7 +145,8 @@ CAR models allow one to represent latent processes on a grid, ofen in space or t
 
 NIMBLE provides the improper CAR and proper CAR models using a joint specification :
 
-```{r, eval=FALSE}
+
+```r
 x[1:N] ~ dcar_normal(adjacencies, weights, number_locations, precision, c, zero_mean)
 x[1:N] ~ dcar_proper(mu, C, adj, num, M, tau, gamma)
 ```
@@ -170,18 +169,17 @@ The external code could be:
 
 # Calling external code - example
 
-```{r}
+
+```r
 Rquantile <- nimbleRcall(function(x = double(1), probs = double(1)) {},
           returnType = double(1), Rfun = 'quantile')
 ## The 'Rfun' could you be your own R function too
 ```
 
-```{r, echo=FALSE}
-## only needed for generating html:
-assign('Rquantile', Rquantile, .GlobalEnv)
-```
 
-```{r}
+
+
+```r
 demoCode <- nimbleCode({       
    for(i in 1:n)
          x[i] ~ dnorm(0,1)
@@ -190,8 +188,45 @@ demoCode <- nimbleCode({
 n <- 100
 demoModel <- nimbleModel(demoCode, constants = list(n = n),
                          inits = list(x = rnorm(n)))
+```
+
+```
+## Defining model
+```
+
+```
+## Building model
+```
+
+```
+## Setting data and initial values
+```
+
+```
+## Running calculate on model
+##   [Note] Any error reports that follow may simply reflect missing values in model variables.
+```
+
+```
+## Checking model sizes and dimensions
+```
+
+```r
 CdemoModel <- compileNimble(demoModel)
+```
+
+```
+## Compiling
+##   [Note] This may take a minute.
+##   [Note] Use 'showCompilerOutput = TRUE' to see C++ compilation details.
+```
+
+```r
 CdemoModel$q
+```
+
+```
+## [1] -1.0301792  0.9257222
 ```
 
 For C++ code, you'll provide the compiled object file and a header file, and you'll need to give us some type information. See `help(nimbleExternalCall)`.

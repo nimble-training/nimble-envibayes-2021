@@ -445,10 +445,179 @@ pre code {
 <li>Conditional autoregressive (CAR) modeling</li>
 <li>WAIC for model comparison/selection</li>
 <li>calling external code (e.g., C++ or R) in models or algorithms</li>
+<li>using sequential Monte Carlo</li>
 </ul>
 </div>
-<div id="under-construction" class="section level1">
-<h1>UNDER CONSTRUCTION</h1>
+<div id="bnp" class="section level1">
+<h1>BNP</h1>
+<p>Bayesian nonparametrics encompass:</p>
+<ul>
+<li>Bayesian nonparametric mixture modeling using Dirichlet processes and related techniques
+<ul>
+<li>Useful for clustering and flexibly modeling distributions</li>
+</ul></li>
+<li>Gaussian processes and related techniques
+<ul>
+<li>Useful for flexibly modeling functions</li>
+</ul></li>
+</ul>
+<p>The latter are available indirectly by using the multivariate normal density.</p>
+<p>The former are provided using NIMBLE’s BNP functionality.</p>
+<p>The basic idea is to model an unknown distribution as a mixture of an unknown number of component distributions (e.g., normal densities). The Dirichlet process construction allows one to estimate the number of components rther than having to specify it in advance as with finite mixture models.</p>
+</div>
+<div id="bnp---example" class="section level1">
+<h1>BNP - example</h1>
+<p>BNP mixture models can be used to directly model data or to model random effects. Here’s an example of some code for modeling random effects:</p>
+<pre class="r"><code>for(i in 1:n) {
+    gamma[i] ~ dnorm(mu[i], var = tau[i]) # mixture of normal densities
+    mu[i] &lt;- muTilde[xi[i]]               # mean for component assigned to i&#39;th study
+    tau[i] &lt;- tauTilde[xi[i]]             # variance for component assigned to i&#39;th study
+}
+xi[1:nStudies] ~ dCRP(conc, size = n)     # cluster the gamma[i]&#39;s into groups</code></pre>
+<p>A few comments:</p>
+<ul>
+<li>Each random effect <code>gamma[i]</code> comes from one of the component mixture densities, determined by <code>xi[i]</code>.</li>
+<li>The ‘Chinese Restaurant Process’ (<code>dCRP</code>) clusters the random effects and relates to the Dirichlet process specification.</li>
+<li>Prior specification for the mixture component parameters can be tricky to do well.</li>
+<li>NIMBLE assigns specialized samplers to <code>xi[1:n]</code>.</li>
+</ul>
+</div>
+<div id="reversible-jump-for-variable-selection" class="section level1">
+<h1>Reversible jump for variable selection</h1>
+<ul>
+<li>RJMCMC is a method for sampling across different models.</li>
+<li>Specifically it is about sampling between different numbers of dimensions.</li>
+<li>In full generality, RJ requires one to figure out a way to propose reasonable parameter values when moving between models. Hard!</li>
+<li>RJ for variable selection is relatively simple.</li>
+</ul>
+<p>RJ in nimble turns off and on variables in regression-style models. This can be done explicitly using indicator variables that are the on-off switch or implicitly.</p>
+</div>
+<div id="reversible-jump-for-variable-selection-1" class="section level1">
+<h1>Reversible jump for variable selection</h1>
+<p>Here are some code snippets:</p>
+<pre class="r"><code>code &lt;- nimbleCode({
+   for(i in 1:n) 
+      y[i] ~ dnorm(beta0 + beta1*x1[i] + beta2*x2[i], sd = sigma)
+   ## other code omitted
+})
+
+model &lt;- nimbleModel(code, data = data, constants = constants)
+conf &lt;- configureMCMC(model)
+configureRJ(conf,
+            targetNodes = &#39;beta2&#39;,
+            priorProb = 0.5,
+            control = list(mean = 0, scale = 1))</code></pre>
+</div>
+<div id="waic" class="section level1">
+<h1>WAIC</h1>
+<p>WAIC is a popular metric for comparing/selecting models. It has various advantages over DIC.</p>
+<p>DIC drawbacks:</p>
+<ul>
+<li>Limited theoretical justification</li>
+<li>DIC values are different for different parameterizations of the same model</li>
+<li>DIC is based on the posterior mean so full posterior not used</li>
+</ul>
+<p>WAIC tries to estimate the expected pointwise log predictive density for a new dataset, <span class="math inline">\(\{\tilde{y}_i\}\)</span>:</p>
+<p><span class="math display">\[ \sum_{i=1}^n E_{\tilde{y}}(\log p_{post}(\tilde{y}_i)) \]</span></p>
+<p>Two quantities are used:</p>
+<ol style="list-style-type: decimal">
+<li>Pointwise log predictive density in-sample: <span class="math inline">\(\sum_{i=1}^n \log \left(\frac{1}{M} \sum_{j=1}^M p(y_i | \theta^{(j)}) \right)\)</span></li>
+<li>An estimate of the effective number of parameters (number of unconstrained parameters)</li>
+</ol>
+<p>The second piece adjusts for the bias from overfitting.</p>
+<p>WAIC uses the full posterior, so does not rely on the plug-in predictive density as in DIC.</p>
+</div>
+<div id="waic-variations" class="section level1">
+<h1>WAIC variations</h1>
+<p>NIMBLE provides:</p>
+<ul>
+<li>a default WAIC that treats each observation as independent and seeks to predict new observations</li>
+<li>a WAIC that allows one to group observations (e.g., treating all observations from a single patient as an “observation”)</li>
+<li>a WAIC that seeks to predict new random effects by marginalizing over latent variables</li>
+</ul>
+</div>
+<div id="waic---example" class="section level1">
+<h1>WAIC - example</h1>
+<p>Here’s some syntax for the different WAIC variations:</p>
+<pre class="r"><code>## Conditional WAIC without data grouping:
+conf &lt;- configureMCMC(Rmodel, enableWAIC = TRUE)
+
+## Conditional WAIC with data grouping
+conf &lt;- configureMCMC(Rmodel, enableWAIC = TRUE, controlWAIC = list(dataGroups = groups))
+
+## Marginal WAIC (predict new &#39;mu&#39; values) with data grouping:
+conf &lt;- configureMCMC(Rmodel, enableWAIC = TRUE, controlWAIC =
+        list(dataGroups = groups, marginalizeNodes = &#39;mu&#39;))</code></pre>
+</div>
+<div id="conditional-auto-regressive-car-models" class="section level1">
+<h1>Conditional auto-regressive (CAR) models</h1>
+<p>CAR models allow one to represent latent processes on a grid, ofen in space or time.</p>
+<ul>
+<li>The model is often written conditionally – as the distribution of each location given the others.</li>
+<li>This provides a convenient sampling strategy for each location given the others.</li>
+<li>However, there are technical requirements that have to be satisfied for the joint distribution to be valid.</li>
+</ul>
+<p>NIMBLE provides the improper CAR and proper CAR models using a joint specification :</p>
+<pre class="r"><code>x[1:N] ~ dcar_normal(adjacencies, weights, number_locations, precision, c, zero_mean)
+x[1:N] ~ dcar_proper(mu, C, adj, num, M, tau, gamma)</code></pre>
+<p>The underlying MCMC sampler cycles through each location in turn, using univariate samplers.</p>
+<p>In some cases joint sampling may work better (particularly to improve mixing of the CAR process hyperparameter), but this is not directly available in NIMBLE. You may want to consider <a href="https://osf.io/3ey65">this recent work</a> for setting up the model jointly in Stan.</p>
+</div>
+<div id="calling-external-code" class="section level1">
+<h1>Calling external code</h1>
+<p>You can call out to essentially arbitrary external code from within model code or nimbleFunctions. This allows you to:</p>
+<ul>
+<li>embed arbitrary calculations in a model (e.g., some “black box” calculation)</li>
+<li>use external code as part of an algorithm</li>
+</ul>
+<p>The external code could be:</p>
+<ul>
+<li>C++ (or a C++ wrapper to other languages) using <code>nimbleExternalCall</code></li>
+<li>arbitrary R code beyond the R syntax that NIMBLE can compile using <code>nimbleRcall</code></li>
+</ul>
+</div>
+<div id="calling-external-code---example" class="section level1">
+<h1>Calling external code - example</h1>
+<pre class="r"><code>Rquantile &lt;- nimbleRcall(function(x = double(1), probs = double(1)) {},
+          returnType = double(1), Rfun = &#39;quantile&#39;)
+## The &#39;Rfun&#39; could you be your own R function too</code></pre>
+<pre class="r"><code>demoCode &lt;- nimbleCode({       
+   for(i in 1:n)
+         x[i] ~ dnorm(0,1)
+   q[1:2] &lt;- Rquantile(x[1:4], c(.025, .975))
+})
+n &lt;- 100
+demoModel &lt;- nimbleModel(demoCode, constants = list(n = n),
+                         inits = list(x = rnorm(n)))</code></pre>
+<pre><code>## Defining model</code></pre>
+<pre><code>## Building model</code></pre>
+<pre><code>## Setting data and initial values</code></pre>
+<pre><code>## Running calculate on model
+##   [Note] Any error reports that follow may simply reflect missing values in model variables.</code></pre>
+<pre><code>## Checking model sizes and dimensions</code></pre>
+<pre class="r"><code>CdemoModel &lt;- compileNimble(demoModel)</code></pre>
+<pre><code>## Compiling
+##   [Note] This may take a minute.
+##   [Note] Use &#39;showCompilerOutput = TRUE&#39; to see C++ compilation details.</code></pre>
+<pre class="r"><code>CdemoModel$q</code></pre>
+<pre><code>## [1] -1.267812  1.476159</code></pre>
+<p>For C++ code, you’ll provide the compiled object file and a header file, and you’ll need to give us some type information. See <code>help(nimbleExternalCall)</code>.</p>
+</div>
+<div id="sequential-monte-carlo" class="section level1">
+<h1>Sequential Monte Carlo</h1>
+<p>NIMBLE is not just an MCMC engine. Its core idea is to make programming and sharing algorithms for hierarchical models easier.</p>
+<p>We have a variety of sequential Monte Carlo (aka ‘particle filtering’) algorithms in the <code>nimbleSMC</code> package, including:</p>
+<ul>
+<li>bootstrap filter</li>
+<li>auxiliary particle filter</li>
+<li>ensemble Kalman Filter</li>
+<li>iterated filter 2 (IF2; useful for parameter estimation)</li>
+</ul>
+<p>In addition you can use particle filters to integrate over latent states in an overall MCMC algorithm using particle MCMC. We provide:</p>
+<ul>
+<li>particle MCMC for univariate parameters (<code>RW_PF</code>)</li>
+<li>particle MCMC for vector parameters (<code>RW_PF_block</code>)</li>
+</ul>
 </div>
 
 
