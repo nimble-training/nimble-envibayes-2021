@@ -4,7 +4,7 @@ Materials for NIMBLE (virtual) tutorial for the enviBayes section of ISBA
 
 Time: 11 am - 1 pm, Eastern U.S. time, Thursday November 18.
 
-[2021-11-11: Content is mostly stable, except for module 7.]
+[2021-11-17: Content is mostly finalized.]
 
 All materials for the workshop will be here. If you're familiar with Git/GitHub, you already know how to get all the materials on your computer. If you're not, simply click [here](https://github.com/nimble-training/nimble-envibayes-2021/archive/main.zip).
 
