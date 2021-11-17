@@ -27,13 +27,13 @@ r <- matrix(c(13, 12, 12, 11, 9, 10, 9, 9, 8, 10, 8, 9,
      12, 9, 11, 8, 9, 8, 9, 4, 8, 7, 11, 4, 4, 5, 5, 3, 7, 3, 7, 0), 
      nrow = 2)
               
-littersConstants <- list(G = G, N = N, n = n)
+littersConsts <- list(G = G, N = N, n = n)
 littersData <- list(r = r)
 littersInits <- list( a = c(2, 2), b=c(2, 2) )
 
 ## create the NIMBLE model object
 littersModel <- nimbleModel(littersCode, 
-          data = littersData, constants = littersConstants, inits = littersInits)
+          data = littersData, constants = littersConsts, inits = littersInits)
 
 ## @knitr litters-compile
 
