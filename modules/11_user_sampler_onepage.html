@@ -502,7 +502,7 @@ pre code {
 <div id="nimbles-metropolis-sampler" class="section level1">
 <h1>NIMBLE’s Metropolis sampler</h1>
 <p>Often it’s easiest when writing a new sampler that is similar to an existing NIMBLE sampler to just modify the code for the existing sampler. In this case, NIMBLE’s existing random walk sampler has some nice additional functionality that we can include in our reflection sampler, specifically the ability to adapt the proposal variance.</p>
-<p>Below is the full new reflection sampler, building on NIMBLE’s baseline random walk sampler to include adaptation. (You can see all of our sampler nimbleFunctions in the file <em>R/MCMC_samplers.R</em> in the <a href="https://cran.r-project.org/src/contrib/nimble_0.12.1.tar.gz">NIMBLE source package</a>, also available as <code>MCMC_samplers.R</code> in this repository.)</p>
+<p>Below is the full new reflection sampler, building on NIMBLE’s baseline random walk sampler to include adaptation. (You can see all of our sampler nimbleFunctions in the file <em>R/MCMC_samplers.R</em> in the <a href="https://cran.r-project.org/src/contrib/nimble_0.12.1.tar.gz">NIMBLE source package</a>, also available as <a href="MCMC_samplers.R">MCMC_samplers.R</a> in this repository.)</p>
 <pre class="r"><code>RW_reflect &lt;- nimbleFunction(
     contains = sampler_BASE,
     setup = function(model, mvSaved, target, control) {
@@ -521,9 +521,9 @@ pre code {
         targetAsScalar &lt;- model$expandNodeNames(target, 
                        returnScalarComponents = TRUE)
         if(length(targetAsScalar) &gt; 1)     
-                       stop(&#39;more than one target; cannot use RW sampler, try RW_block sampler&#39;)
+                       stop(&#39;more than one target; cannot use RW_reflect sampler, try RW_block sampler&#39;)
         if(model$isDiscrete(target))
-                       stop(&#39;cannot use RW sampler on discrete-valued target; try slice sampler&#39;)
+                       stop(&#39;cannot use RW_reflect sampler on discrete-valued target; try slice sampler&#39;)
 
         ### ADDED code ############################################
         dist &lt;- model$getDistribution(target)

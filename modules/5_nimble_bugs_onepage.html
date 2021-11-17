@@ -472,7 +472,7 @@ pre code {
 <ul>
 <li>Alternative distribution parameterizations (like R).</li>
 <li>Named parameters (like R).</li>
-<li>Vectorized math and linear algebra.</li>
+<li>Vectorized math (e.g., <code>pred[1:5] &lt;- b0 + b1*x[1:5]</code>) and linear algebra.</li>
 <li>Definition-time if-then-else (multiple model variants from the same code).</li>
 <li>User-defined functions and distributions.</li>
 <li>Distinction between <code>constants</code> and <code>data</code>.</li>
@@ -549,49 +549,49 @@ littersModel$isData(&#39;r&#39;)</code></pre>
 ## [25] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE</code></pre>
 <pre class="r"><code>littersModel$r</code></pre>
 <pre><code>##      [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10] [,11] [,12] [,13] [,14]
-## [1,]    8    5    7    3    3    2   10    6    6     6     6     8     4     6
-## [2,]   12    7    8    4    8    4   10    6    7     1     6     2     3     4
+## [1,]    3   11    7    4    6    3   10    5    5     2     6     4     4     3
+## [2,]    7    8    3    6    2    0    5    2    7     0     4     1     5     3
 ##      [,15] [,16]
-## [1,]     9     2
-## [2,]     7     3</code></pre>
+## [1,]     5     5
+## [2,]     1     7</code></pre>
 <pre class="r"><code>littersModel$p</code></pre>
 <pre><code>##           [,1]      [,2]      [,3]      [,4]      [,5]      [,6]      [,7]
-## [1,] 0.4707786 0.3325798 0.6276221 0.4043176 0.3862915 0.2619357 0.7411156
-## [2,] 0.9812124 0.5909845 0.5904271 0.5761424 0.5297040 0.3711646 0.8356443
+## [1,] 0.2261578 0.6717566 0.6947566 0.1411255 0.2019899 0.3960803 0.6369903
+## [2,] 0.6038133 0.5291040 0.2897088 0.5014323 0.2137208 0.1877904 0.4023577
 ##           [,8]      [,9]     [,10]     [,11]     [,12]     [,13]     [,14]
-## [1,] 0.5275265 0.6775524 0.6799562 0.4623206 0.5861378 0.8048666 0.5547902
-## [2,] 0.6778303 0.9608647 0.5516040 0.5626273 0.3002121 0.3211740 0.7494062
+## [1,] 0.5079119 0.5383374 0.4498958 0.6854432 0.3138811 0.5546895 0.2169369
+## [2,] 0.2519538 0.5779708 0.4953796 0.6771415 0.2793565 0.5112380 0.3720771
 ##          [,15]     [,16]
-## [1,] 0.4473470 0.3903517
-## [2,] 0.6302813 0.3487288</code></pre>
+## [1,] 0.5104940 0.7381353
+## [2,] 0.1421329 0.8764075</code></pre>
 <pre class="r"><code>littersModel$simulate(&#39;r&#39;)</code></pre>
 <pre><code>## NULL</code></pre>
 <pre class="r"><code>littersModel$simulate(&#39;p&#39;)
 littersModel$r</code></pre>
 <pre><code>##      [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10] [,11] [,12] [,13] [,14]
-## [1,]    8    5    7    3    3    2   10    6    6     6     6     8     4     6
-## [2,]   12    7    8    4    8    4   10    6    7     1     6     2     3     4
+## [1,]    3   11    7    4    6    3   10    5    5     2     6     4     4     3
+## [2,]    7    8    3    6    2    0    5    2    7     0     4     1     5     3
 ##      [,15] [,16]
-## [1,]     9     2
-## [2,]     7     3</code></pre>
+## [1,]     5     5
+## [2,]     1     7</code></pre>
 <pre class="r"><code>littersModel$p</code></pre>
 <pre><code>##           [,1]      [,2]      [,3]      [,4]      [,5]      [,6]      [,7]
-## [1,] 0.8735918 0.8017088 0.3493787 0.4410096 0.3555654 0.7413938 0.1488206
-## [2,] 0.1942726 0.8146556 0.4963762 0.4151034 0.1879542 0.3261986 0.5769326
-##           [,8]      [,9]     [,10]     [,11]     [,12]      [,13]      [,14]
-## [1,] 0.9141037 0.1493182 0.8153650 0.3947587 0.7336586 0.38261109 0.21967935
-## [2,] 0.3486253 0.4277662 0.2252048 0.8491590 0.7514492 0.08797416 0.02776445
+## [1,] 0.7268032 0.7423223 0.8931445 0.5378653 0.5618306 0.2485720 0.3141303
+## [2,] 0.5666843 0.6041510 0.7927877 0.6191116 0.5144378 0.3152386 0.7984261
+##           [,8]      [,9]     [,10]      [,11]     [,12]     [,13]      [,14]
+## [1,] 0.5956893 0.8727005 0.4467576 0.43309857 0.7128626 0.6898045 0.12806685
+## [2,] 0.3157666 0.4285704 0.4308975 0.06348919 0.8004814 0.4951508 0.08345183
 ##          [,15]     [,16]
-## [1,] 0.6556411 0.6647288
-## [2,] 0.4878598 0.8021171</code></pre>
+## [1,] 0.3034841 0.5408875
+## [2,] 0.1109013 0.5803949</code></pre>
 <pre class="r"><code>littersModel$simulate(&#39;r&#39;, includeData = TRUE)
 littersModel$r</code></pre>
 <pre><code>##      [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10] [,11] [,12] [,13] [,14]
-## [1,]   12    9    2    1    4    6    2   11    1     7     2     8     2     3
-## [2,]    2    8    2    5    2    2    6    4    5     2     7     6     0     0
+## [1,]   10   11    8    4    4    3    5    8    7     4     2    10     2     0
+## [2,]    6    7    9    4    5    2    8    0    4     2     0     5     4     0
 ##      [,15] [,16]
-## [1,]    10     6
-## [2,]     7     3</code></pre>
+## [1,]     4     9
+## [2,]     0     4</code></pre>
 <ul>
 <li>NIMBLE will usually disambiguate data when it is provided as constants.</li>
 </ul>
@@ -653,7 +653,8 @@ m2$getNodeNames()</code></pre>
 </div>
 <div id="definition-time-if-then-else" class="section level1">
 <h1>Definition-time if-then-else</h1>
-<p>If you wish to define multiple alternative models in one set of code, you can use if-then-else statements. These will be evaluated based on variables in the R environment when the model is defined. For example:</p>
+<p>If you wish to define multiple alternative models in one set of code, you can use if-then-else statements. These will be evaluated based on variables in the R environment when the model is defined. <strong>You cannot use if statements as statements within model code apart from this usage of defining alternative models.</strong></p>
+<p>For example:</p>
 <pre class="r"><code>code &lt;- nimbleCode({
     sigma ~ dunif(0, 10)
     beta0 ~ dnorm(0, sd = 1000)

@@ -46,6 +46,7 @@ dbetabin <- nimbleFunction(
         size = double(0), log = integer(0, default = 0)) {
         
         returnType(double(0))
+        
         logProb <- lgamma(size+1) - lgamma(x+1) - lgamma(size - x + 1) +
             lgamma(alpha + beta) - lgamma(alpha) - lgamma(beta) +
             lgamma(x + alpha) + lgamma(size - x + beta) -
@@ -57,8 +58,9 @@ dbetabin <- nimbleFunction(
 rbetabin <- nimbleFunction(
     run = function(n = integer(0), alpha = double(0), beta = double(0),
         size = double(0)) {
-        
+     
         returnType(double(0))
+        
         if(n != 1) print("rbetabin only allows n = 1; using n = 1.")
         p <- rbeta(1, alpha, beta)
         return(rbinom(1, size = size, prob = p))
@@ -90,10 +92,10 @@ If you'd like to allow for different parameterizations for your distribution, an
 littersMargCode <- nimbleCode({
   for (i in 1:G) {
      for (j in 1:N) {
-     	 # (marginal) likelihood (data model)
+     	# (marginal) likelihood (data model)
         r[i,j] ~ dbetabin(a[i], b[i], n[i,j])
      }
-     # prior for hyperparameters
+     # prior for hyperparameters (this parameterization not recommended)
      a[i] ~ dgamma(1, .001)
      b[i] ~ dgamma(1, .001)
    }
@@ -158,6 +160,6 @@ effectiveSize(samplesMarg)
 
 That works better than without marginalization. It would probably be even better if we blocked each pair of hyperparameters. You can try to do the blocking during the break if you'd like to practice a bit.
 
-Of course if you wanted samples from `p`, you'd need to write a separate R function (or a nimbleFunction) to do the post-hoc sampling given the posterior samples of `a` and `b`.  
+Of course if you wanted samples from `p`, you'd need to write a separate R function (or a nimbleFunction) to do the post-hoc sampling given the posterior samples of `a` and `b` and the data values, `r`.  
 
 

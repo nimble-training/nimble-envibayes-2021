@@ -111,23 +111,25 @@ NIMBLE Development Team
 <a class="sourceLine" id="cb1-3" title="3">        <span class="dt">size =</span> <span class="kw">double</span>(<span class="dv">0</span>), <span class="dt">log =</span> <span class="kw">integer</span>(<span class="dv">0</span>, <span class="dt">default =</span> <span class="dv">0</span>)) {</a>
 <a class="sourceLine" id="cb1-4" title="4">        </a>
 <a class="sourceLine" id="cb1-5" title="5">        <span class="kw">returnType</span>(<span class="kw">double</span>(<span class="dv">0</span>))</a>
-<a class="sourceLine" id="cb1-6" title="6">        logProb &lt;-<span class="st"> </span><span class="kw">lgamma</span>(size<span class="op">+</span><span class="dv">1</span>) <span class="op">-</span><span class="st"> </span><span class="kw">lgamma</span>(x<span class="op">+</span><span class="dv">1</span>) <span class="op">-</span><span class="st"> </span><span class="kw">lgamma</span>(size <span class="op">-</span><span class="st"> </span>x <span class="op">+</span><span class="st"> </span><span class="dv">1</span>) <span class="op">+</span></a>
-<a class="sourceLine" id="cb1-7" title="7"><span class="st">            </span><span class="kw">lgamma</span>(alpha <span class="op">+</span><span class="st"> </span>beta) <span class="op">-</span><span class="st"> </span><span class="kw">lgamma</span>(alpha) <span class="op">-</span><span class="st"> </span><span class="kw">lgamma</span>(beta) <span class="op">+</span></a>
-<a class="sourceLine" id="cb1-8" title="8"><span class="st">            </span><span class="kw">lgamma</span>(x <span class="op">+</span><span class="st"> </span>alpha) <span class="op">+</span><span class="st"> </span><span class="kw">lgamma</span>(size <span class="op">-</span><span class="st"> </span>x <span class="op">+</span><span class="st"> </span>beta) <span class="op">-</span></a>
-<a class="sourceLine" id="cb1-9" title="9"><span class="st">            </span><span class="kw">lgamma</span>(size <span class="op">+</span><span class="st"> </span>alpha <span class="op">+</span><span class="st"> </span>beta)</a>
-<a class="sourceLine" id="cb1-10" title="10">        <span class="cf">if</span>(log) <span class="kw">return</span>(logProb)</a>
-<a class="sourceLine" id="cb1-11" title="11">        <span class="cf">else</span> <span class="kw">return</span>(<span class="kw">exp</span>(logProb))</a>
-<a class="sourceLine" id="cb1-12" title="12">    })</a>
-<a class="sourceLine" id="cb1-13" title="13"></a>
-<a class="sourceLine" id="cb1-14" title="14">rbetabin &lt;-<span class="st"> </span><span class="kw">nimbleFunction</span>(</a>
-<a class="sourceLine" id="cb1-15" title="15">    <span class="dt">run =</span> <span class="cf">function</span>(<span class="dt">n =</span> <span class="kw">integer</span>(<span class="dv">0</span>), <span class="dt">alpha =</span> <span class="kw">double</span>(<span class="dv">0</span>), <span class="dt">beta =</span> <span class="kw">double</span>(<span class="dv">0</span>),</a>
-<a class="sourceLine" id="cb1-16" title="16">        <span class="dt">size =</span> <span class="kw">double</span>(<span class="dv">0</span>)) {</a>
-<a class="sourceLine" id="cb1-17" title="17">        </a>
-<a class="sourceLine" id="cb1-18" title="18">        <span class="kw">returnType</span>(<span class="kw">double</span>(<span class="dv">0</span>))</a>
-<a class="sourceLine" id="cb1-19" title="19">        <span class="cf">if</span>(n <span class="op">!=</span><span class="st"> </span><span class="dv">1</span>) <span class="kw">print</span>(<span class="st">&quot;rbetabin only allows n = 1; using n = 1.&quot;</span>)</a>
-<a class="sourceLine" id="cb1-20" title="20">        p &lt;-<span class="st"> </span><span class="kw">rbeta</span>(<span class="dv">1</span>, alpha, beta)</a>
-<a class="sourceLine" id="cb1-21" title="21">        <span class="kw">return</span>(<span class="kw">rbinom</span>(<span class="dv">1</span>, <span class="dt">size =</span> size, <span class="dt">prob =</span> p))</a>
-<a class="sourceLine" id="cb1-22" title="22">    })</a></code></pre></div>
+<a class="sourceLine" id="cb1-6" title="6">        </a>
+<a class="sourceLine" id="cb1-7" title="7">        logProb &lt;-<span class="st"> </span><span class="kw">lgamma</span>(size<span class="op">+</span><span class="dv">1</span>) <span class="op">-</span><span class="st"> </span><span class="kw">lgamma</span>(x<span class="op">+</span><span class="dv">1</span>) <span class="op">-</span><span class="st"> </span><span class="kw">lgamma</span>(size <span class="op">-</span><span class="st"> </span>x <span class="op">+</span><span class="st"> </span><span class="dv">1</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb1-8" title="8"><span class="st">            </span><span class="kw">lgamma</span>(alpha <span class="op">+</span><span class="st"> </span>beta) <span class="op">-</span><span class="st"> </span><span class="kw">lgamma</span>(alpha) <span class="op">-</span><span class="st"> </span><span class="kw">lgamma</span>(beta) <span class="op">+</span></a>
+<a class="sourceLine" id="cb1-9" title="9"><span class="st">            </span><span class="kw">lgamma</span>(x <span class="op">+</span><span class="st"> </span>alpha) <span class="op">+</span><span class="st"> </span><span class="kw">lgamma</span>(size <span class="op">-</span><span class="st"> </span>x <span class="op">+</span><span class="st"> </span>beta) <span class="op">-</span></a>
+<a class="sourceLine" id="cb1-10" title="10"><span class="st">            </span><span class="kw">lgamma</span>(size <span class="op">+</span><span class="st"> </span>alpha <span class="op">+</span><span class="st"> </span>beta)</a>
+<a class="sourceLine" id="cb1-11" title="11">        <span class="cf">if</span>(log) <span class="kw">return</span>(logProb)</a>
+<a class="sourceLine" id="cb1-12" title="12">        <span class="cf">else</span> <span class="kw">return</span>(<span class="kw">exp</span>(logProb))</a>
+<a class="sourceLine" id="cb1-13" title="13">    })</a>
+<a class="sourceLine" id="cb1-14" title="14"></a>
+<a class="sourceLine" id="cb1-15" title="15">rbetabin &lt;-<span class="st"> </span><span class="kw">nimbleFunction</span>(</a>
+<a class="sourceLine" id="cb1-16" title="16">    <span class="dt">run =</span> <span class="cf">function</span>(<span class="dt">n =</span> <span class="kw">integer</span>(<span class="dv">0</span>), <span class="dt">alpha =</span> <span class="kw">double</span>(<span class="dv">0</span>), <span class="dt">beta =</span> <span class="kw">double</span>(<span class="dv">0</span>),</a>
+<a class="sourceLine" id="cb1-17" title="17">        <span class="dt">size =</span> <span class="kw">double</span>(<span class="dv">0</span>)) {</a>
+<a class="sourceLine" id="cb1-18" title="18">     </a>
+<a class="sourceLine" id="cb1-19" title="19">        <span class="kw">returnType</span>(<span class="kw">double</span>(<span class="dv">0</span>))</a>
+<a class="sourceLine" id="cb1-20" title="20">        </a>
+<a class="sourceLine" id="cb1-21" title="21">        <span class="cf">if</span>(n <span class="op">!=</span><span class="st"> </span><span class="dv">1</span>) <span class="kw">print</span>(<span class="st">&quot;rbetabin only allows n = 1; using n = 1.&quot;</span>)</a>
+<a class="sourceLine" id="cb1-22" title="22">        p &lt;-<span class="st"> </span><span class="kw">rbeta</span>(<span class="dv">1</span>, alpha, beta)</a>
+<a class="sourceLine" id="cb1-23" title="23">        <span class="kw">return</span>(<span class="kw">rbinom</span>(<span class="dv">1</span>, <span class="dt">size =</span> size, <span class="dt">prob =</span> p))</a>
+<a class="sourceLine" id="cb1-24" title="24">    })</a></code></pre></div>
 <p>The functions are written as nimbleFunctions. These are functions that NIMBLE can translate into C++ and use in conjunction with models. In later modules we’ll see more about this, but for now a few comments:</p>
 <ul>
 <li>nimbleFunctions are written using a subset of R syntax: not all R syntax is allowed.</li>
@@ -145,10 +147,10 @@ NIMBLE Development Team
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" title="1">littersMargCode &lt;-<span class="st"> </span><span class="kw">nimbleCode</span>({</a>
 <a class="sourceLine" id="cb2-2" title="2">  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>G) {</a>
 <a class="sourceLine" id="cb2-3" title="3">     <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>N) {</a>
-<a class="sourceLine" id="cb2-4" title="4">         <span class="co"># (marginal) likelihood (data model)</span></a>
+<a class="sourceLine" id="cb2-4" title="4">        <span class="co"># (marginal) likelihood (data model)</span></a>
 <a class="sourceLine" id="cb2-5" title="5">        r[i,j] <span class="op">~</span><span class="st"> </span><span class="kw">dbetabin</span>(a[i], b[i], n[i,j])</a>
 <a class="sourceLine" id="cb2-6" title="6">     }</a>
-<a class="sourceLine" id="cb2-7" title="7">     <span class="co"># prior for hyperparameters</span></a>
+<a class="sourceLine" id="cb2-7" title="7">     <span class="co"># prior for hyperparameters (this parameterization not recommended)</span></a>
 <a class="sourceLine" id="cb2-8" title="8">     a[i] <span class="op">~</span><span class="st"> </span><span class="kw">dgamma</span>(<span class="dv">1</span>, <span class="fl">.001</span>)</a>
 <a class="sourceLine" id="cb2-9" title="9">     b[i] <span class="op">~</span><span class="st"> </span><span class="kw">dgamma</span>(<span class="dv">1</span>, <span class="fl">.001</span>)</a>
 <a class="sourceLine" id="cb2-10" title="10">   }</a>
@@ -215,7 +217,7 @@ NIMBLE Development Team
 <pre><code>##      a[1]      a[2]      b[1]      b[2] 
 ##  63.78525 134.97764  56.32670 105.97731</code></pre>
 <p>That works better than without marginalization. It would probably be even better if we blocked each pair of hyperparameters. You can try to do the blocking during the break if you’d like to practice a bit.</p>
-<p>Of course if you wanted samples from <code>p</code>, you’d need to write a separate R function (or a nimbleFunction) to do the post-hoc sampling given the posterior samples of <code>a</code> and <code>b</code>.</p>
+<p>Of course if you wanted samples from <code>p</code>, you’d need to write a separate R function (or a nimbleFunction) to do the post-hoc sampling given the posterior samples of <code>a</code> and <code>b</code> and the data values, <code>r</code>.</p>
 </div>
 </body>
 </html>

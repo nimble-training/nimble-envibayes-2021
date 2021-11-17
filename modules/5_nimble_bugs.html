@@ -107,7 +107,7 @@ NIMBLE Development Team
 <ul>
 <li>Alternative distribution parameterizations (like R).</li>
 <li>Named parameters (like R).</li>
-<li>Vectorized math and linear algebra.</li>
+<li>Vectorized math (e.g., <code>pred[1:5] &lt;- b0 + b1*x[1:5]</code>) and linear algebra.</li>
 <li>Definition-time if-then-else (multiple model variants from the same code).</li>
 <li>User-defined functions and distributions.</li>
 <li>Distinction between <code>constants</code> and <code>data</code>.</li>
@@ -230,22 +230,22 @@ NIMBLE Development Team
 ## [2,]     3     0</code></pre>
 <div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb24-1" title="1">littersModel<span class="op">$</span>p</a></code></pre></div>
 <pre><code>##           [,1]      [,2]      [,3]      [,4]      [,5]      [,6]      [,7]
-## [1,] 0.4707786 0.3325798 0.6276221 0.4043176 0.3862915 0.2619357 0.7411156
-## [2,] 0.9812124 0.5909845 0.5904271 0.5761424 0.5297040 0.3711646 0.8356443
+## [1,] 0.2261578 0.6717566 0.6947566 0.1411255 0.2019899 0.3960803 0.6369903
+## [2,] 0.6038133 0.5291040 0.2897088 0.5014323 0.2137208 0.1877904 0.4023577
 ##           [,8]      [,9]     [,10]     [,11]     [,12]     [,13]     [,14]
-## [1,] 0.5275265 0.6775524 0.6799562 0.4623206 0.5861378 0.8048666 0.5547902
-## [2,] 0.6778303 0.9608647 0.5516040 0.5626273 0.3002121 0.3211740 0.7494062
+## [1,] 0.5079119 0.5383374 0.4498958 0.6854432 0.3138811 0.5546895 0.2169369
+## [2,] 0.2519538 0.5779708 0.4953796 0.6771415 0.2793565 0.5112380 0.3720771
 ##          [,15]     [,16]
-## [1,] 0.4473470 0.3903517
-## [2,] 0.6302813 0.3487288</code></pre>
+## [1,] 0.5104940 0.7381353
+## [2,] 0.1421329 0.8764075</code></pre>
 <div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb26-1" title="1">littersModel<span class="op">$</span><span class="kw">simulate</span>(<span class="st">&#39;r&#39;</span>, <span class="dt">includeData =</span> <span class="ot">TRUE</span>)</a>
 <a class="sourceLine" id="cb26-2" title="2">littersModel<span class="op">$</span>r</a></code></pre></div>
 <pre><code>##      [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10] [,11] [,12] [,13] [,14]
-## [1,]    8    5    7    3    3    2   10    6    6     6     6     8     4     6
-## [2,]   12    7    8    4    8    4   10    6    7     1     6     2     3     4
+## [1,]    3   11    7    4    6    3   10    5    5     2     6     4     4     3
+## [2,]    7    8    3    6    2    0    5    2    7     0     4     1     5     3
 ##      [,15] [,16]
-## [1,]     9     2
-## [2,]     7     3</code></pre>
+## [1,]     5     5
+## [2,]     1     7</code></pre>
 <ul>
 <li>NIMBLE will usually disambiguate data when it is provided as constants.</li>
 </ul>
@@ -307,7 +307,8 @@ NIMBLE Development Team
 </div>
 <div id="definition-time-if-then-else" class="slide section level1">
 <h1>Definition-time if-then-else</h1>
-<p>If you wish to define multiple alternative models in one set of code, you can use if-then-else statements. These will be evaluated based on variables in the R environment when the model is defined. For example:</p>
+<p>If you wish to define multiple alternative models in one set of code, you can use if-then-else statements. These will be evaluated based on variables in the R environment when the model is defined. <strong>You cannot use if statements as statements within model code apart from this usage of defining alternative models.</strong></p>
+<p>For example:</p>
 <div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb36-1" title="1">code &lt;-<span class="st"> </span><span class="kw">nimbleCode</span>({</a>
 <a class="sourceLine" id="cb36-2" title="2">    sigma <span class="op">~</span><span class="st"> </span><span class="kw">dunif</span>(<span class="dv">0</span>, <span class="dv">10</span>)</a>
 <a class="sourceLine" id="cb36-3" title="3">    beta0 <span class="op">~</span><span class="st"> </span><span class="kw">dnorm</span>(<span class="dv">0</span>, <span class="dt">sd =</span> <span class="dv">1000</span>)</a>

@@ -42,10 +42,10 @@ Here are some of the features you can do in NIMBLE that we are most excited abou
 - call out to arbitrary external (C++, R, etc.) code within a model or algorithm
 - compile mathematical operations in R without needing to know or write C or C++
 
-# Why Not NIMBLE?
+# Why not NIMBLE?
 
  - For MCMCs that rely heavily on Gibbs sampling, JAGS may be a bit faster because of more efficient internal implementation of the calculations.
- - For certain model structures, Hamiltonian Monte Carlo, such as implemented in Stan or PyMC, may work better than the default MCMC samplers in NIMBLE.
+ - For certain model structures, Hamiltonian Monte Carlo, such as implemented in Stan or PyMC3, may work better than the default MCMC samplers in NIMBLE.
    1. That said, in a number of examples we've tried we've been able to achieve comparable or better performance either out-of-the-box or with some relatively simple modifications to the model or the MCMC samplers.
    2. And yet, sometimes customization is time-consuming and requires specialized knowledge.
   

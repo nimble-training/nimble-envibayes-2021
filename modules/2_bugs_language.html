@@ -93,8 +93,14 @@ NIMBLE Development Team
 <p>The BUGS language is described in detail in the NIMBLE manual and in the <a href="http://www.openbugs.net/Manuals/ModelSpecification.html">relevant section of the BUGS manual</a>.</p>
 <h3 id="stochastic-declarations">Stochastic declarations</h3>
 <ul>
-<li><code>x ~ dgamma(shape, scale)</code> (<code>x</code> follows a gamma distribution with parameters <code>shape</code> and <code>scale</code>)</li>
-<li><code>y[1:3]</code> ~ dmnorm(theta[1:3], omega[1:3, 1:3])<code>(</code>y[1:3]<code>follows a multivariate normal distribution with parameters</code>mean<code>and</code>precision`)</li>
+<li><code>x ~ dgamma(shape, scale)</code>
+<ul>
+<li><code>x</code> follows a gamma distribution with parameters <code>shape</code> and <code>scale</code></li>
+</ul></li>
+<li><code>y[1:3] ~ dmnorm(theta[1:3], omega[1:3, 1:3])</code>
+<ul>
+<li><code>y[1:3]</code> follows a multivariate normal distribution with parameters <code>mean</code> and <code>precision</code></li>
+</ul></li>
 </ul>
 <h3 id="deterministic-declarations">Deterministic declarations</h3>
 <ul>
@@ -134,11 +140,11 @@ NIMBLE Development Team
 <li>There are <code>G=2</code> groups of rat litters, with <code>N=16</code> litters (i.e., mothers) in each group, and a variable number of pups in each litter.</li>
 <li>Survival of the pups in a litter is governed by a survival probability for each litter, <code>p[i,j]</code>.</li>
 <li>The probabilities for the litters within a group are considered to come from a common distribution, thereby borrowing strength across the litters in a group.</li>
-<li>The common distributions are <img style="vertical-align:middle" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIwAAAAUBAMAAACt28gjAAAAMFBMVEX///8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAv3aB7AAAAD3RSTlMAVHYiZpkQRO+Jq7vdMs3/9KjfAAAACXBIWXMAAA7EAAAOxAGVKw4bAAACYUlEQVQ4EZVTz2sTURD+kt28zQ/yY6v04K+kLYLQy+IxFBNrqhaR5iB66MGteOrFeOihF1mlKN7WWy2IQfDgRYL1D1gvXkTIRRB6SKAgCB6iUaEHwZn33kY3TSMOvDcz33zv25ndt8B/2Y1R7PgoMMTE5o/Hy4Uw074Zyct9mYp6BB1KUh6MbwpzdCneiHCyPZUejqBDSdwDriuspEs57bUzWyoYgqMklnnqSkzTMfTYdElWkSooP3JnmXeyEtPNYztKTDZUbjWBiZlaPVrVGcnsUKW24K7tPYI57wMelaaPOyG9Yk+p0IOY/I4rIc7+2EPaJmnFv9qLVaT8bCB6wBRmgQDIVNNdKkq76CRdGfRgWR62xFGZtWjP7pbJ+RTxUC9xy8F7ltlCB0YXuIS0r+l4gWRjhQ/dJ3YTz2MnKFaWcLEMcI1lOtWibb9hGRhLyHaBDToa0h8g37YJw1vqsoC7OEOxsgSQ2F4tUMIy+foSRaJnoPykAhHA6FNXmk7qRdkhv7O8awUKX2zTEZPWqXu06W4qLoT4aVIXlSzR6cbNWlrGCPBsINNxc22Jmys+nx4Y3WJ8QcLHIfRN8QvFm/gEeOKzyfSyCwRWV8oYLeDk2RnVpUjwKAOT/xQJz9faOHIZCxdOX6PPhTX7w3mW+VgF1ifolXVpAopf80H5bnIOh+OsrItM189kmYwLyL90DgaQ1KSDHfPZ5miFMgENSPekR5C1eS5Twg5F482oyzrREdPM9Q0HV4E7ezovYHq8BldvDyihDAFme4BCNEq7f7KDIhp9v/0NxvBKT7uf92/kN12LfjIpiBi3AAAAAElFTkSuQmCC" alt="p_{1,j} \sim \mbox{Beta}(a_1, b_1)" title="p_{1,j} \sim \mbox{Beta}(a_1, b_1)" /> for group 1 and <img style="vertical-align:middle" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIEAAAAUBAMAAABYJUOTAAAAMFBMVEX///8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAv3aB7AAAAD3RSTlMAVHYiZpkQRO+Jq7vdMs3/9KjfAAAACXBIWXMAAA7EAAAOxAGVKw4bAAACWElEQVQ4EZVTPWhTURT+Xt57N2nSJC9VOojSZ4sgFCF0jEJiSZUgpRkEhw4+RReXpkMXhxJ/sLglmy2IQXBw0WLFOS4uImRxKphAQRAcXo0KGYp+974fkhADHjj3fOd85zv3vnsT4L/s5lC3PZQPpOLJr+1Va6AENPxcf51V6PYQP5hOVKH/8EpeOxCpBC1tD2iFoDAqRqrAdY+wfT7lR+CKjzphZQSQE545itj16eN+BJ77qB5WRgA54aOqa65P74VtWz66yzg1VyyHRD/ghH0yxSVno1eHsVgDquRnT2UB/XDKUr0xQEz/xNV+4cnHzKbpkcNMqYCJWrIpXOA05oEmkCjEO4DxAI/YAqSBaLSKHa1UlukuPXmQY6gRya94hbUsPskJO2hD78grjJOkbylRzGFjAy8W8JISZaaDVW+WnNAuzGQy7+UE6CtIdoCHiFUg/UiJJh0ey8K9L+HrwATMvTsWJXJCurxCJFwduad5iCb0Ls8CrEFzlYj3gLQTbQLbRKUWF4N+9j4XNaFdyDsQ4rfBvfNJ3mTSxXwUuIC4rURyQttJtSA+UHujJoWh8TeJ7zBrOIauIY4wcwtf+RziGzeZxCaPRtF5tp+5OMeb4fbClGcPTf0vOHOx2MKJZSxdXrjGB8FG5vMl3n/d9kRF9r+VmnM6l1RWwnGWGyCl6B0rXXq0EmEmv2m8JRzFy+2UCHqD7+8yyf/pJWzsy/pY08uKZi+NIpgOsNmTGc3CrAfGreseaQU9ywFgFBX7oC/9B/TOLyoBnQ0Ao4Y34eS+8kio9Vf/AqOYfJ1zebtSAAAAAElFTkSuQmCC" alt="p_{2,j} \sim \mbox{Beta}(a_, b_2)" title="p_{2,j} \sim \mbox{Beta}(a_, b_2)" /> for group 2.</li>
+<li>The common distributions are <img style="vertical-align:middle" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIwAAAAUBAMAAACt28gjAAAAMFBMVEX///8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAv3aB7AAAAD3RSTlMAVHYiZpkQRO+Jq7vdMs3/9KjfAAAACXBIWXMAAA7EAAAOxAGVKw4bAAACYUlEQVQ4EZVTz2sTURD+kt28zQ/yY6v04K+kLYLQy+IxFBNrqhaR5iB66MGteOrFeOihF1mlKN7WWy2IQfDgRYL1D1gvXkTIRRB6SKAgCB6iUaEHwZn33kY3TSMOvDcz33zv25ndt8B/2Y1R7PgoMMTE5o/Hy4Uw074Zyct9mYp6BB1KUh6MbwpzdCneiHCyPZUejqBDSdwDriuspEs57bUzWyoYgqMklnnqSkzTMfTYdElWkSooP3JnmXeyEtPNYztKTDZUbjWBiZlaPVrVGcnsUKW24K7tPYI57wMelaaPOyG9Yk+p0IOY/I4rIc7+2EPaJmnFv9qLVaT8bCB6wBRmgQDIVNNdKkq76CRdGfRgWR62xFGZtWjP7pbJ+RTxUC9xy8F7ltlCB0YXuIS0r+l4gWRjhQ/dJ3YTz2MnKFaWcLEMcI1lOtWibb9hGRhLyHaBDToa0h8g37YJw1vqsoC7OEOxsgSQ2F4tUMIy+foSRaJnoPykAhHA6FNXmk7qRdkhv7O8awUKX2zTEZPWqXu06W4qLoT4aVIXlSzR6cbNWlrGCPBsINNxc22Jmys+nx4Y3WJ8QcLHIfRN8QvFm/gEeOKzyfSyCwRWV8oYLeDk2RnVpUjwKAOT/xQJz9faOHIZCxdOX6PPhTX7w3mW+VgF1ifolXVpAopf80H5bnIOh+OsrItM189kmYwLyL90DgaQ1KSDHfPZ5miFMgENSPekR5C1eS5Twg5F482oyzrREdPM9Q0HV4E7ezovYHq8BldvDyihDAFme4BCNEq7f7KDIhp9v/0NxvBKT7uf92/kN12LfjIpiBi3AAAAAElFTkSuQmCC" alt="p_{1,j} \sim \mbox{Beta}(a_1, b_1)" title="p_{1,j} \sim \mbox{Beta}(a_1, b_1)" /> for group 1 and <img style="vertical-align:middle" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIwAAAAUBAMAAACt28gjAAAAMFBMVEX///8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAv3aB7AAAAD3RSTlMAVHYiZpkQRO+Jq7vdMs3/9KjfAAAACXBIWXMAAA7EAAAOxAGVKw4bAAACcUlEQVQ4EZVTz2sTQRh92d3M5gebbGrpQZRsWwShFJYec0ksqRpEmoPooQdX8SSC8VDES4kiirf1INiCGAQPHpRg/QPWixcRAiIIBRMoCIKHaFTIQeI3P5Jm0xj0g5n5vvfevPky2QH+Ky6OU2vjwD7GHv7cXLP7lVproTrXESUrh9CRIl6F/l1irqK0SkhjtWU5HUJHCq0KnJeYo6iUWtVi1GUyAodF3OaxJzAlx8ixCUewiNtyHTtzm7eCiajmsR0WxiqyNmvA1HyxHGZVRTY7xBRXvPXufRjLPlAlau6w25fnM7MyrYLN/MCZPs7XQ/domqGhfcuUCoj7VsDawCwWgABIFhItIkWcdGOeSNowzSq2IiU6FqjTsHZztPiU8R/1AlddvOM2W2hCbwGnkPCVHM8Qq0w/IOkdUtfwdIkQFVEPa9KQ2zQL2UzmNbeBvgqrBdymrX35XaTfOwk68g11aePmJzpERRSIbl+2qeI26fIqZaytI/coDxZA71BXSk7uWatl1MWdpT0zADZJXWrQZNA4eosmYdMs5D0w9sugLvIWXTF9cQumlEMP8AR0ecKm6aUaYNSWcYGAoaCvGF8R9XEAHYP9RvYSPtMO9sXg8pwHBGYLuOJBp4aOHJsHEtQIi9oYCvGmyHi52MDB01g5sXSO/i6sZz4c5/KPBeDGFOmfUwOUv+JbF3WaUi5PJ0VOkVyuztQaLpIewF+pWdGIiE1yEBzXU5B8YHMdDshdvNJ8r5t0sCM0kya9LFiSIyJ1eq/n4yyw0VX7bMxNcpDctYFE2fDaaAxQsIqzu1f9LeNXuC+GwQheqkvbJ/sH4A/nOolmQqQQAAAAAABJRU5ErkJggg==" alt="p_{2,j} \sim \mbox{Beta}(a_2, b_2)" title="p_{2,j} \sim \mbox{Beta}(a_2, b_2)" /> for group 2.</li>
 </ul>
 </div>
-<div id="specifying-the-bugs-code-for-a-model" class="slide section level1">
-<h1>Specifying the BUGS code for a model</h1>
+<div id="specifying-the-code-for-a-model" class="slide section level1">
+<h1>Specifying the code for a model</h1>
 <p>Here we specify the litters model code directly in R. We can walk through some of details via the comments in the BUGS code.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" title="1"><span class="kw">library</span>(nimble)</a>
 <a class="sourceLine" id="cb3-2" title="2">littersCode &lt;-<span class="st"> </span><span class="kw">nimbleCode</span>({</a>
@@ -146,7 +152,7 @@ NIMBLE Development Team
 <a class="sourceLine" id="cb3-4" title="4">     <span class="cf">for</span> (j <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>N) {</a>
 <a class="sourceLine" id="cb3-5" title="5">        <span class="co"># Likelihood (data model)</span></a>
 <a class="sourceLine" id="cb3-6" title="6">        r[i,j] <span class="op">~</span><span class="st"> </span><span class="kw">dbin</span>(p[i,j], n[i,j])</a>
-<a class="sourceLine" id="cb3-7" title="7">    <span class="co"># Latent process (random effects)</span></a>
+<a class="sourceLine" id="cb3-7" title="7">        <span class="co"># Latent process (random effects)</span></a>
 <a class="sourceLine" id="cb3-8" title="8">        p[i,j] <span class="op">~</span><span class="st"> </span><span class="kw">dbeta</span>(a[i], b[i]) </a>
 <a class="sourceLine" id="cb3-9" title="9">     }</a>
 <a class="sourceLine" id="cb3-10" title="10">     <span class="co"># Priors for hyperparameters</span></a>

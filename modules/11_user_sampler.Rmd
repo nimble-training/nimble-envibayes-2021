@@ -93,7 +93,7 @@ RW_reflect <- nimbleFunction(
 Often it's easiest when writing a new sampler that is similar to an existing NIMBLE sampler to just modify the code for the existing sampler. In this case, NIMBLE's existing random walk sampler has some nice additional functionality that we can include in our reflection sampler, specifically the ability to adapt the proposal variance. 
 
 
-Below is the full new reflection sampler, building on NIMBLE's baseline random walk sampler to include adaptation. (You can see all of our sampler nimbleFunctions in the file *R/MCMC_samplers.R* in the [NIMBLE source package](https://cran.r-project.org/src/contrib/nimble_0.12.1.tar.gz), also available as `MCMC_samplers.R` in this repository.)
+Below is the full new reflection sampler, building on NIMBLE's baseline random walk sampler to include adaptation. (You can see all of our sampler nimbleFunctions in the file *R/MCMC_samplers.R* in the [NIMBLE source package](https://cran.r-project.org/src/contrib/nimble_0.12.1.tar.gz), also available as [MCMC_samplers.R](MCMC_samplers.R) in this repository.)
 
 
 ```{r, newSampler}
@@ -115,9 +115,9 @@ RW_reflect <- nimbleFunction(
         targetAsScalar <- model$expandNodeNames(target, 
                        returnScalarComponents = TRUE)
         if(length(targetAsScalar) > 1)     
-                       stop('more than one target; cannot use RW sampler, try RW_block sampler')
+                       stop('more than one target; cannot use RW_reflect sampler, try RW_block sampler')
         if(model$isDiscrete(target))
-                       stop('cannot use RW sampler on discrete-valued target; try slice sampler')
+                       stop('cannot use RW_reflect sampler on discrete-valued target; try slice sampler')
 
         ### ADDED code ############################################
         dist <- model$getDistribution(target)

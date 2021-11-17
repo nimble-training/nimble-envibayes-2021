@@ -460,6 +460,7 @@ pre code {
         size = double(0), log = integer(0, default = 0)) {
         
         returnType(double(0))
+        
         logProb &lt;- lgamma(size+1) - lgamma(x+1) - lgamma(size - x + 1) +
             lgamma(alpha + beta) - lgamma(alpha) - lgamma(beta) +
             lgamma(x + alpha) + lgamma(size - x + beta) -
@@ -471,8 +472,9 @@ pre code {
 rbetabin &lt;- nimbleFunction(
     run = function(n = integer(0), alpha = double(0), beta = double(0),
         size = double(0)) {
-        
+     
         returnType(double(0))
+        
         if(n != 1) print(&quot;rbetabin only allows n = 1; using n = 1.&quot;)
         p &lt;- rbeta(1, alpha, beta)
         return(rbinom(1, size = size, prob = p))
@@ -494,10 +496,10 @@ rbetabin &lt;- nimbleFunction(
 <pre class="r"><code>littersMargCode &lt;- nimbleCode({
   for (i in 1:G) {
      for (j in 1:N) {
-         # (marginal) likelihood (data model)
+        # (marginal) likelihood (data model)
         r[i,j] ~ dbetabin(a[i], b[i], n[i,j])
      }
-     # prior for hyperparameters
+     # prior for hyperparameters (this parameterization not recommended)
      a[i] ~ dgamma(1, .001)
      b[i] ~ dgamma(1, .001)
    }
@@ -562,7 +564,7 @@ ts.plot(samplesMarg[ , &#39;b[2]&#39;], xlab = &#39;iteration&#39;,
 <pre><code>##      a[1]      a[2]      b[1]      b[2] 
 ##  63.78525 134.97764  56.32670 105.97731</code></pre>
 <p>That works better than without marginalization. It would probably be even better if we blocked each pair of hyperparameters. You can try to do the blocking during the break if you’d like to practice a bit.</p>
-<p>Of course if you wanted samples from <code>p</code>, you’d need to write a separate R function (or a nimbleFunction) to do the post-hoc sampling given the posterior samples of <code>a</code> and <code>b</code>.</p>
+<p>Of course if you wanted samples from <code>p</code>, you’d need to write a separate R function (or a nimbleFunction) to do the post-hoc sampling given the posterior samples of <code>a</code> and <code>b</code> and the data values, <code>r</code>.</p>
 </div>
 
 

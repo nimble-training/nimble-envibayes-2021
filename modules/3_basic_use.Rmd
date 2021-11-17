@@ -22,8 +22,12 @@ We'll use the *litters* model example from BUGS. The data set describes survival
 
 <center><img src="littersDAG.jpg"></center>
 
+ - There are ```G=2``` groups of rat litters, with ```N=16```  litters (i.e., mothers) in each group, and a variable number of pups in each litter.
+ - Survival of the pups in a litter is governed by a survival probability for each litter, ```p[i,j]```.
+ - The probabilities for the litters within a group are considered to come from a common distribution, thereby borrowing strength across the litters in a group.
+ - The common distributions are $p_{1,j} \sim \mbox{Beta}(a_1, b_1)$ for group 1 and $p_{2,j} \sim \mbox{Beta}(a_2, b_2)$ for group 2.
 
-# Specifying the BUGS code for a model
+# Specifying the code for a model
 
 Here we specify the litters code directly in R. We can walk through some of details via the comments in the BUGS code. The model is a binomial GLMM with $G=2$ groups of rat litters, and exchangeable litter-specific survival probabilities for the litters in each group. 
 
@@ -38,7 +42,7 @@ littersCode <- nimbleCode({
         # Latent process (random effects)
         p[i,j] ~ dbeta(a[i], b[i]) 
      }
-     # Priors for hyperparameters
+     # Priors for hyperparameters (this parameterization not recommended)
      a[i] ~ dgamma(1, .001)
      b[i] ~ dgamma(1, .001)
    }
@@ -67,7 +71,7 @@ r <- matrix(c(13, 12, 12, 11, 9, 10, 9, 9, 8, 10, 8, 9,
               
 littersConsts <- list(G = G, N = N, n = n)
 littersData <- list(r = r)
-littersInits <- list( a = c(2, 2), b=c(2, 2) )
+littersInits <- list(a = c(2, 2), b = c(2, 2))
 
 ## create the NIMBLE model object
 littersModel <- nimbleModel(littersCode, 
@@ -116,7 +120,7 @@ littersModel$getLogProb('p')  # now we're good
 
 Much of the power of NIMBLE comes from the ability to customize algorithms in NIMBLE, including how MCMC sampling works.
 
-In order to talk about MCMC customization in Module 5, we first need to see the 'manual' steps of running an MCMC in NIMBLE (as a contrast to the one-click MCMC seen in the previous slide).
+In order to talk about MCMC customization in Module 4, we first need to see the 'manual' steps of running an MCMC in NIMBLE (as a contrast to the one-click MCMC mentioned in a previous slide).
 
 The steps of running an MCMC are as follows:
 
@@ -130,16 +134,18 @@ Note that `nimbleMCMC()` combines steps 1-4 (and in fact does not even require y
 
 # Configuring a basic MCMC
 
-At a high level, NIMBLE (like BUGS and JAGS) uses a "Gibbs" style MCMC that loops over parameters. Individual samplers (e.g., conjugate, Metropolis, slice, etc.) assigned to individual parameters or blocks of parameters. In contrast, Stan and PyMC3 assign a Hamiltonian Monte Carlo sampler to the entire vector of parameters. 
+At a high level, NIMBLE (like BUGS and JAGS) uses a "Gibbs" style MCMC that loops over parameters.
 
-Setting up and running an MCMC in NIMBLE in this way takes a few more steps than in BUGS or JAGS, but with the benefit of giving the user much more control of how the MCMC operates.
+  - Individual samplers (e.g., conjugate, Metropolis, slice, etc.) are assigned to individual parameters or blocks of parameters.
+  - In contrast, Stan and PyMC3 assign a Hamiltonian Monte Carlo sampler to the entire vector of parameters. 
+  - Setting up and running an MCMC in NIMBLE in this way takes a few more steps than in BUGS or JAGS, but with the benefit of giving the user much more control of how the MCMC operates.
 
 First we *configure* the MCMC, which means setting up the samplers to be used for each node or group of nodes. NIMBLE provides a default configuration, but we'll see shortly how you can modify that. 
 
 ```{r, configureMCMC}
 littersConf <- configureMCMC(littersModel, print = TRUE)
 ```
-You also specify the nodes for which you'd like to get the MCMC samples as output. (NIMBLE defaults to only monitoring the "top-level" nodes, i.e., hyperparameters with no stochastic parents.
+You also specify the nodes for which you'd like to get the MCMC samples as output. (NIMBLE defaults to only monitoring the "top-level" nodes, i.e., hyperparameters with no stochastic parents.)
 
 ```{r, monitor}
 littersConf$addMonitors(c('a', 'b', 'p'))
@@ -163,8 +169,8 @@ Now let's run the MCMC.
 Sidenote: We don't recommend running the R version of the MCMC for very many iterations - it's really slow - in part because iterating in R is slow and in part because iterating with a model in NIMBLE requires even more overhead. The R and C MCMC samples are the same, so you can use the R MCMC for debugging. It's possible to step through the code line by line using R's debugging capabilities (not shown).
 
 ```{r run-mcmc}
-niter <- 1000
-nburn <- 100
+niter <- 5000
+nburn <- 1000
 set.seed(1)
 inits <- function() {
       a <- runif(G, 1, 20)
@@ -240,9 +246,8 @@ for(i in 2:3)
 # One-click MCMC operation: `nimbleMCMC`
 
 ```{r, litters-nimbleMCMC, fig.cap='', fig.width=12, fig.height=8}
-source('chunks_litters.R')
 samples <- nimbleMCMC(code = littersCode, data = littersData, inits = littersInits,
-                      constants = littersConstants, monitors = c("a", "b", "p"),
+                      constants = littersConsts, monitors = c("a", "b", "p"),
                       thin = 1, niter = 1100, nburnin = 100, nchains = 1,
                       setSeed = TRUE)
 par(mfrow = c(2, 2), cex = 1.2, mgp = c(1.8, 0.7, 0), mai = c(0.75, 0.75, 0.1, 0.1))

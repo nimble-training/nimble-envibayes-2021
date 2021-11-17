@@ -34,7 +34,8 @@ The latter are available indirectly by using the multivariate normal density.
 
 The former are provided using NIMBLE's BNP functionality.
 
-The basic idea is to model an unknown distribution as a mixture of an unknown number of component distributions (e.g., normal densities). The Dirichlet process construction allows one to estimate the number of components rther than having to specify it in advance as with finite mixture models. 
+  - The basic idea is to model an unknown distribution as a mixture of an unknown number of component distributions (e.g., normal densities).
+  - The Dirichlet process construction allows one to estimate the number of components rther than having to specify it in advance as with finite mixture models. 
 
 # BNP - example
 
@@ -62,14 +63,17 @@ A few comments:
 
  - RJMCMC is a method for sampling across different models.
  - Specifically it is about sampling between different numbers of dimensions.
- - In full generality, RJ requires one to figure out a way to propose reasonable parameter values when moving between models. Hard!
+ - In full generality, RJ requires one to figure out a way to propose reasonable parameter values when moving between models with different numbers of parameters. Often hard!
  - RJ for variable selection is relatively simple.
 
-RJ in nimble turns off and on variables in regression-style models. This can be done explicitly using indicator variables that are the on-off switch or implicitly.
+RJ in NIMBLE turns off and on variables in regression-style models. This can be done:
+
+  - explicitly using indicator variables that are the on-off switch or
+  - implicitly.
 
 # Reversible jump for variable selection
 
-Here are some code snippets:
+Here are some code snippets for use without an indicator variable:
 
 
 ```r
@@ -118,8 +122,6 @@ NIMBLE provides:
  - a WAIC that allows one to group observations (e.g., treating all observations from a single patient as an "observation")
  - a WAIC that seeks to predict new random effects by marginalizing over latent variables
 
-# WAIC - example
-
 Here's some syntax for the different WAIC variations:
 
 
@@ -164,8 +166,10 @@ You can call out to essentially arbitrary external code from within model code o
 
 The external code could be:
 
- - C++ (or a C++ wrapper to other languages) using `nimbleExternalCall`
- - arbitrary R code beyond the R syntax that NIMBLE can compile using `nimbleRcall`
+ - C/C++ (or a C/C++ wrapper to other languages)
+     - use `nimbleExternalCall`
+ - arbitrary R code beyond the R syntax that NIMBLE can compile
+     - use `nimbleRcall`
 
 # Calling external code - example
 
@@ -226,7 +230,7 @@ CdemoModel$q
 ```
 
 ```
-## [1] -1.0301792  0.9257222
+## [1] -1.0591061  0.9873164
 ```
 
 For C++ code, you'll provide the compiled object file and a header file, and you'll need to give us some type information. See `help(nimbleExternalCall)`.

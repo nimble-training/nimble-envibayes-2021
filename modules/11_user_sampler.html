@@ -153,7 +153,7 @@ NIMBLE Development Team
 <div id="nimbles-metropolis-sampler" class="slide section level1">
 <h1>NIMBLE’s Metropolis sampler</h1>
 <p>Often it’s easiest when writing a new sampler that is similar to an existing NIMBLE sampler to just modify the code for the existing sampler. In this case, NIMBLE’s existing random walk sampler has some nice additional functionality that we can include in our reflection sampler, specifically the ability to adapt the proposal variance.</p>
-<p>Below is the full new reflection sampler, building on NIMBLE’s baseline random walk sampler to include adaptation. (You can see all of our sampler nimbleFunctions in the file <em>R/MCMC_samplers.R</em> in the <a href="https://cran.r-project.org/src/contrib/nimble_0.12.1.tar.gz">NIMBLE source package</a>, also available as <code>MCMC_samplers.R</code> in this repository.)</p>
+<p>Below is the full new reflection sampler, building on NIMBLE’s baseline random walk sampler to include adaptation. (You can see all of our sampler nimbleFunctions in the file <em>R/MCMC_samplers.R</em> in the <a href="https://cran.r-project.org/src/contrib/nimble_0.12.1.tar.gz">NIMBLE source package</a>, also available as <a href="MCMC_samplers.R">MCMC_samplers.R</a> in this repository.)</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" title="1">RW_reflect &lt;-<span class="st"> </span><span class="kw">nimbleFunction</span>(</a>
 <a class="sourceLine" id="cb2-2" title="2">    <span class="dt">contains =</span> sampler_BASE,</a>
 <a class="sourceLine" id="cb2-3" title="3">    <span class="dt">setup =</span> <span class="cf">function</span>(model, mvSaved, target, control) {</a>
@@ -172,9 +172,9 @@ NIMBLE Development Team
 <a class="sourceLine" id="cb2-16" title="16">        targetAsScalar &lt;-<span class="st"> </span>model<span class="op">$</span><span class="kw">expandNodeNames</span>(target, </a>
 <a class="sourceLine" id="cb2-17" title="17">                       <span class="dt">returnScalarComponents =</span> <span class="ot">TRUE</span>)</a>
 <a class="sourceLine" id="cb2-18" title="18">        <span class="cf">if</span>(<span class="kw">length</span>(targetAsScalar) <span class="op">&gt;</span><span class="st"> </span><span class="dv">1</span>)     </a>
-<a class="sourceLine" id="cb2-19" title="19">                       <span class="kw">stop</span>(<span class="st">&#39;more than one target; cannot use RW sampler, try RW_block sampler&#39;</span>)</a>
+<a class="sourceLine" id="cb2-19" title="19">                       <span class="kw">stop</span>(<span class="st">&#39;more than one target; cannot use RW_reflect sampler, try RW_block sampler&#39;</span>)</a>
 <a class="sourceLine" id="cb2-20" title="20">        <span class="cf">if</span>(model<span class="op">$</span><span class="kw">isDiscrete</span>(target))</a>
-<a class="sourceLine" id="cb2-21" title="21">                       <span class="kw">stop</span>(<span class="st">&#39;cannot use RW sampler on discrete-valued target; try slice sampler&#39;</span>)</a>
+<a class="sourceLine" id="cb2-21" title="21">                       <span class="kw">stop</span>(<span class="st">&#39;cannot use RW_reflect sampler on discrete-valued target; try slice sampler&#39;</span>)</a>
 <a class="sourceLine" id="cb2-22" title="22"></a>
 <a class="sourceLine" id="cb2-23" title="23">        <span class="co">### ADDED code ############################################</span></a>
 <a class="sourceLine" id="cb2-24" title="24">        dist &lt;-<span class="st"> </span>model<span class="op">$</span><span class="kw">getDistribution</span>(target)</a>

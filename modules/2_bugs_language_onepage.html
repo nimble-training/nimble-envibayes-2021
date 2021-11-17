@@ -443,8 +443,14 @@ pre code {
 <div id="stochastic-declarations" class="section level3">
 <h3>Stochastic declarations</h3>
 <ul>
-<li><code>x ~ dgamma(shape, scale)</code> (<code>x</code> follows a gamma distribution with parameters <code>shape</code> and <code>scale</code>)</li>
-<li><code>y[1:3]</code> ~ dmnorm(theta[1:3], omega[1:3, 1:3])<code>(</code>y[1:3]<code>follows a multivariate normal distribution with parameters</code>mean<code>and</code>precision`)</li>
+<li><code>x ~ dgamma(shape, scale)</code>
+<ul>
+<li><code>x</code> follows a gamma distribution with parameters <code>shape</code> and <code>scale</code></li>
+</ul></li>
+<li><code>y[1:3] ~ dmnorm(theta[1:3], omega[1:3, 1:3])</code>
+<ul>
+<li><code>y[1:3]</code> follows a multivariate normal distribution with parameters <code>mean</code> and <code>precision</code></li>
+</ul></li>
 </ul>
 </div>
 <div id="deterministic-declarations" class="section level3">
@@ -489,11 +495,11 @@ pre code {
 <li>There are <code>G=2</code> groups of rat litters, with <code>N=16</code> litters (i.e., mothers) in each group, and a variable number of pups in each litter.</li>
 <li>Survival of the pups in a litter is governed by a survival probability for each litter, <code>p[i,j]</code>.</li>
 <li>The probabilities for the litters within a group are considered to come from a common distribution, thereby borrowing strength across the litters in a group.</li>
-<li>The common distributions are <span class="math inline">\(p_{1,j} \sim \mbox{Beta}(a_1, b_1)\)</span> for group 1 and <span class="math inline">\(p_{2,j} \sim \mbox{Beta}(a_, b_2)\)</span> for group 2.</li>
+<li>The common distributions are <span class="math inline">\(p_{1,j} \sim \mbox{Beta}(a_1, b_1)\)</span> for group 1 and <span class="math inline">\(p_{2,j} \sim \mbox{Beta}(a_2, b_2)\)</span> for group 2.</li>
 </ul>
 </div>
-<div id="specifying-the-bugs-code-for-a-model" class="section level1">
-<h1>Specifying the BUGS code for a model</h1>
+<div id="specifying-the-code-for-a-model" class="section level1">
+<h1>Specifying the code for a model</h1>
 <p>Here we specify the litters model code directly in R. We can walk through some of details via the comments in the BUGS code.</p>
 <pre class="r"><code>library(nimble)
 littersCode &lt;- nimbleCode({
@@ -501,7 +507,7 @@ littersCode &lt;- nimbleCode({
      for (j in 1:N) {
         # Likelihood (data model)
         r[i,j] ~ dbin(p[i,j], n[i,j])
-    # Latent process (random effects)
+        # Latent process (random effects)
         p[i,j] ~ dbeta(a[i], b[i]) 
      }
      # Priors for hyperparameters

@@ -19,8 +19,8 @@ library(nimble)
 
 *nimbleFunctions* are at the heart of NIMBLE. They are the way that algorithms are implemented. They can also be used for
 
- - user-defined BUGS distributions (already seen),
- - user-defined BUGS functions (not seen, but similar to user-defined distributions)
+ - user-defined distributions in models (already seen),
+ - user-defined functions in models (not seen, but similar to user-defined distributions)
  - user-defined MCMC samplers (coming soon), and
  - compiling parts of R (not seen), without reference to a model.
 
@@ -75,15 +75,15 @@ nimbleFunctions use **pass-by-reference** not R style **pass-by-value**, so be c
 
 Let's consider how we would optimize the parameters in a model using a nimbleFunction. Basically, we'll just construct an objective function that we can then pass to R's *optim* function to do the actual numerical optimization. (NIMBLE also has an `optim()` that you can use within a nimbleFunction.)
 
-This amounts to setting things up to find the posterior mode of a model; this is generally a reasonable thing to do only for models with a small number of parameters and without hierarchical structure. That sounds restrictive, but if you can marginalize out the latent process values, then we're doing empirical Bayes.
+This amounts to setting things up to find the posterior mode of a model; this is generally a reasonable thing to do only for models with a small number of parameters and without hierarchical structure. That sounds restrictive, but if you can marginalize out the latent process values, then we're doing empirical Bayes (or maximum a posteriori, depending on whether we include the priors...).
 
 # A nimbleFunction for the litters marginalized model
 
 ```{r, litters-objective, eval}
 objective <- nimbleFunction(
     setup = function(model) {
-          # ordinarily we would do stuff here, but in this case
-          # we only need make the nimbleFunction aware of the model
+          # Ordinarily we would do stuff here, but in this case
+          # we only need make the nimbleFunction aware of the model.
           },
     run = function(par = double(1)) {
         returnType(double(0))
@@ -91,7 +91,10 @@ objective <- nimbleFunction(
         ## requires global assignment operator, <<-
         model[['a']] <<- exp(par[1:2])
         model[['b']] <<- exp(par[3:4])
-        ans <- model$calculate()
+        ## Update the model given param values
+        model$calculate()
+        ## Return the likelihood
+        ans <- model$getLogProb('r')
         return(ans)
     }
 )
@@ -128,7 +131,7 @@ exp(optC$par)
 
 # Writing generic functions
 
-Let's look back at our nimbleFunction objective function. What stops it from being usable on any model?
+Let's look back at our nimbleFunction objective function. What stops the run function from being usable on any model?
 
 ```{r, nf-generic}
 objective <- nimbleFunction(
@@ -137,8 +140,10 @@ objective <- nimbleFunction(
           },
     run = function(par = double(1)) {
         returnType(double(0))
-        values(model, target) <<- exp(par)
-        ans <- model$calculate()
+        model[['a']] <<- exp(par[1:2])
+        model[['b']] <<- exp(par[3:4])
+        model$calculate()
+        ans <- model$getLogProb('r')   
         return(ans)
     }
 )
@@ -146,19 +151,28 @@ objective <- nimbleFunction(
 
 # Writing generic functions - querying model structure
 
-Calculating the density for all model nodes is not necessary for this optimization, since we're doing maximum likelihood rather than maximum a posteriori (MAP) estimation. In particular we don't need to calculate the prior density values.
+
+Calculating the density for all model nodes is not necessary for this optimization, since we're doing maximum likelihood rather than maximum a posteriori (MAP) estimation. In particular we don't need to calculate the prior density values. We do need to make sure to calculate any  deterministic nodes intermediate between params and data (which NIMBLE might introduce behind the scenes).
 
 ```{r, nf-generic2}
 objective <- nimbleFunction(
     setup = function(model, target) {
-        ## We only need to calculate the likelihood, not the full model density.  
+        ## We only need to calculate the likelihood, not the full model density.
+        ## This code assumes there are no stochastic terms between 'target' nodes and data nodes.
         calcNodes <- model$getDependencies(target, self = FALSE)
-        cat("Maximixing w.r.t. ", paste(calcNodes, collapse = ','), ".\n", sep = "")
+        dataNodes <- model$getNodeNames(dataOnly = TRUE)
+        cat("Optimizing w.r.t. ", paste(target, collapse = ','), ".\n", sep = "")
+        cat("Calculating ", paste(calcNodes, collapse = ','), ".\n", sep = "")
+        cat("Likelihood contributions are from ", paste(dataNodes, collapse = ','), ".\n", sep = "")
     },
     run = function(par = double(1)) {
         returnType(double(0))
+        ## Still assuming all params are log-transformed - not very general!
         values(model, target) <<- exp(par)
-        ans <- model$calculate(calcNodes)
+        ## Calculate likelihood, including any deterministic nodes intermediate between params and data
+        model$calculate(calcNodes)
+        ## Return the likelihood
+        ans <- model$getLogProb(dataNodes) 
         return(ans)
     }
 )

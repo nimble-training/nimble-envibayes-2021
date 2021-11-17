@@ -91,8 +91,8 @@ NIMBLE Development Team
 <h1>Introduction</h1>
 <p><em>nimbleFunctions</em> are at the heart of NIMBLE. They are the way that algorithms are implemented. They can also be used for</p>
 <ul>
-<li>user-defined BUGS distributions (already seen),</li>
-<li>user-defined BUGS functions (not seen, but similar to user-defined distributions)</li>
+<li>user-defined distributions in models (already seen),</li>
+<li>user-defined functions in models (not seen, but similar to user-defined distributions)</li>
 <li>user-defined MCMC samplers (coming soon), and</li>
 <li>compiling parts of R (not seen), without reference to a model.</li>
 </ul>
@@ -141,14 +141,14 @@ NIMBLE Development Team
 <div id="a-basic-example-empirical-bayes-maximum-marginal-likelihood" class="slide section level1">
 <h1>A basic example: empirical Bayes / maximum marginal likelihood</h1>
 <p>Let’s consider how we would optimize the parameters in a model using a nimbleFunction. Basically, we’ll just construct an objective function that we can then pass to R’s <em>optim</em> function to do the actual numerical optimization. (NIMBLE also has an <code>optim()</code> that you can use within a nimbleFunction.)</p>
-<p>This amounts to setting things up to find the posterior mode of a model; this is generally a reasonable thing to do only for models with a small number of parameters and without hierarchical structure. That sounds restrictive, but if you can marginalize out the latent process values, then we’re doing empirical Bayes.</p>
+<p>This amounts to setting things up to find the posterior mode of a model; this is generally a reasonable thing to do only for models with a small number of parameters and without hierarchical structure. That sounds restrictive, but if you can marginalize out the latent process values, then we’re doing empirical Bayes (or maximum a posteriori, depending on whether we include the priors…).</p>
 </div>
 <div id="a-nimblefunction-for-the-litters-marginalized-model" class="slide section level1">
 <h1>A nimbleFunction for the litters marginalized model</h1>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" title="1">objective &lt;-<span class="st"> </span><span class="kw">nimbleFunction</span>(</a>
 <a class="sourceLine" id="cb1-2" title="2">    <span class="dt">setup =</span> <span class="cf">function</span>(model) {</a>
-<a class="sourceLine" id="cb1-3" title="3">          <span class="co"># ordinarily we would do stuff here, but in this case</span></a>
-<a class="sourceLine" id="cb1-4" title="4">          <span class="co"># we only need make the nimbleFunction aware of the model</span></a>
+<a class="sourceLine" id="cb1-3" title="3">          <span class="co"># Ordinarily we would do stuff here, but in this case</span></a>
+<a class="sourceLine" id="cb1-4" title="4">          <span class="co"># we only need make the nimbleFunction aware of the model.</span></a>
 <a class="sourceLine" id="cb1-5" title="5">          },</a>
 <a class="sourceLine" id="cb1-6" title="6">    <span class="dt">run =</span> <span class="cf">function</span>(<span class="dt">par =</span> <span class="kw">double</span>(<span class="dv">1</span>)) {</a>
 <a class="sourceLine" id="cb1-7" title="7">        <span class="kw">returnType</span>(<span class="kw">double</span>(<span class="dv">0</span>))</a>
@@ -156,10 +156,13 @@ NIMBLE Development Team
 <a class="sourceLine" id="cb1-9" title="9">        <span class="co">## requires global assignment operator, &lt;&lt;-</span></a>
 <a class="sourceLine" id="cb1-10" title="10">        model[[<span class="st">&#39;a&#39;</span>]] &lt;&lt;-<span class="st"> </span><span class="kw">exp</span>(par[<span class="dv">1</span><span class="op">:</span><span class="dv">2</span>])</a>
 <a class="sourceLine" id="cb1-11" title="11">        model[[<span class="st">&#39;b&#39;</span>]] &lt;&lt;-<span class="st"> </span><span class="kw">exp</span>(par[<span class="dv">3</span><span class="op">:</span><span class="dv">4</span>])</a>
-<a class="sourceLine" id="cb1-12" title="12">        ans &lt;-<span class="st"> </span>model<span class="op">$</span><span class="kw">calculate</span>()</a>
-<a class="sourceLine" id="cb1-13" title="13">        <span class="kw">return</span>(ans)</a>
-<a class="sourceLine" id="cb1-14" title="14">    }</a>
-<a class="sourceLine" id="cb1-15" title="15">)</a></code></pre></div>
+<a class="sourceLine" id="cb1-12" title="12">        <span class="co">## Update the model given param values</span></a>
+<a class="sourceLine" id="cb1-13" title="13">        model<span class="op">$</span><span class="kw">calculate</span>()</a>
+<a class="sourceLine" id="cb1-14" title="14">        <span class="co">## Return the likelihood</span></a>
+<a class="sourceLine" id="cb1-15" title="15">        ans &lt;-<span class="st"> </span>model<span class="op">$</span><span class="kw">getLogProb</span>(<span class="st">&#39;r&#39;</span>)</a>
+<a class="sourceLine" id="cb1-16" title="16">        <span class="kw">return</span>(ans)</a>
+<a class="sourceLine" id="cb1-17" title="17">    }</a>
+<a class="sourceLine" id="cb1-18" title="18">)</a></code></pre></div>
 <p>This is actually a nimbleFunction <em>generator</em> – we can’t run it yet – we need to create a specialized instance of the nimbleFunction that is tailored for some model, in our case the marginalized litters model.</p>
 </div>
 <div id="specializing-the-nimblefunction-to-the-model" class="slide section level1">
@@ -176,21 +179,21 @@ NIMBLE Development Team
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" title="1"><span class="kw">system.time</span>(optR &lt;-<span class="st"> </span><span class="kw">optim</span>(<span class="kw">log</span>(<span class="kw">rep</span>(<span class="dv">1</span>,<span class="dv">4</span>)), rObjective<span class="op">$</span>run,</a>
 <a class="sourceLine" id="cb5-2" title="2">                 <span class="dt">control =</span> <span class="kw">list</span>(<span class="dt">fnscale =</span> <span class="dv">-1</span>)))</a></code></pre></div>
 <pre><code>##    user  system elapsed 
-##   3.065   0.000   3.066</code></pre>
+##   3.215   0.000   3.215</code></pre>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" title="1"><span class="kw">system.time</span>(optC &lt;-<span class="st"> </span><span class="kw">optim</span>(<span class="kw">log</span>(<span class="kw">rep</span>(<span class="dv">1</span>,<span class="dv">4</span>)), cObjective<span class="op">$</span>run,</a>
 <a class="sourceLine" id="cb7-2" title="2">                 <span class="dt">control =</span> <span class="kw">list</span>(<span class="dt">fnscale =</span> <span class="dv">-1</span>)))</a></code></pre></div>
 <pre><code>##    user  system elapsed 
-##   0.010   0.000   0.011</code></pre>
+##   0.009   0.000   0.009</code></pre>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" title="1">optR</a></code></pre></div>
 <pre><code>## $par
-## [1]  3.5802268  0.4638447  1.4091323 -0.5817455
+## [1]  3.7726141  0.4646302  1.5975075 -0.5813183
 ## 
 ## $value
-## [1] -80.46196
+## [1] -52.78522
 ## 
 ## $counts
 ## function gradient 
-##      333       NA 
+##      283       NA 
 ## 
 ## $convergence
 ## [1] 0
@@ -199,14 +202,14 @@ NIMBLE Development Team
 ## NULL</code></pre>
 <div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" title="1">optC</a></code></pre></div>
 <pre><code>## $par
-## [1]  3.5802268  0.4638447  1.4091323 -0.5817455
+## [1]  3.7726141  0.4646302  1.5975075 -0.5813183
 ## 
 ## $value
-## [1] -80.46196
+## [1] -52.78522
 ## 
 ## $counts
 ## function gradient 
-##      333       NA 
+##      283       NA 
 ## 
 ## $convergence
 ## [1] 0
@@ -214,41 +217,53 @@ NIMBLE Development Team
 ## $message
 ## NULL</code></pre>
 <div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" title="1"><span class="kw">exp</span>(optC<span class="op">$</span>par)</a></code></pre></div>
-<pre><code>## [1] 35.8816770  1.5901760  4.0924031  0.5589219</code></pre>
+<pre><code>## [1] 43.4936148  1.5914256  4.9407022  0.5591607</code></pre>
 </div>
 <div id="writing-generic-functions" class="slide section level1">
 <h1>Writing generic functions</h1>
-<p>Let’s look back at our nimbleFunction objective function. What stops it from being usable on any model?</p>
+<p>Let’s look back at our nimbleFunction objective function. What stops the run function from being usable on any model?</p>
 <div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" title="1">objective &lt;-<span class="st"> </span><span class="kw">nimbleFunction</span>(</a>
 <a class="sourceLine" id="cb15-2" title="2">    <span class="dt">setup =</span> <span class="cf">function</span>(model, target) {</a>
 <a class="sourceLine" id="cb15-3" title="3">          <span class="co">## We&#39;ll start putting stuff here soon, I promise!</span></a>
 <a class="sourceLine" id="cb15-4" title="4">          },</a>
 <a class="sourceLine" id="cb15-5" title="5">    <span class="dt">run =</span> <span class="cf">function</span>(<span class="dt">par =</span> <span class="kw">double</span>(<span class="dv">1</span>)) {</a>
 <a class="sourceLine" id="cb15-6" title="6">        <span class="kw">returnType</span>(<span class="kw">double</span>(<span class="dv">0</span>))</a>
-<a class="sourceLine" id="cb15-7" title="7">        <span class="kw">values</span>(model, target) &lt;&lt;-<span class="st"> </span><span class="kw">exp</span>(par)</a>
-<a class="sourceLine" id="cb15-8" title="8">        ans &lt;-<span class="st"> </span>model<span class="op">$</span><span class="kw">calculate</span>()</a>
-<a class="sourceLine" id="cb15-9" title="9">        <span class="kw">return</span>(ans)</a>
-<a class="sourceLine" id="cb15-10" title="10">    }</a>
-<a class="sourceLine" id="cb15-11" title="11">)</a></code></pre></div>
+<a class="sourceLine" id="cb15-7" title="7">        model[[<span class="st">&#39;a&#39;</span>]] &lt;&lt;-<span class="st"> </span><span class="kw">exp</span>(par[<span class="dv">1</span><span class="op">:</span><span class="dv">2</span>])</a>
+<a class="sourceLine" id="cb15-8" title="8">        model[[<span class="st">&#39;b&#39;</span>]] &lt;&lt;-<span class="st"> </span><span class="kw">exp</span>(par[<span class="dv">3</span><span class="op">:</span><span class="dv">4</span>])</a>
+<a class="sourceLine" id="cb15-9" title="9">        model<span class="op">$</span><span class="kw">calculate</span>()</a>
+<a class="sourceLine" id="cb15-10" title="10">        ans &lt;-<span class="st"> </span>model<span class="op">$</span><span class="kw">getLogProb</span>(<span class="st">&#39;r&#39;</span>)   </a>
+<a class="sourceLine" id="cb15-11" title="11">        <span class="kw">return</span>(ans)</a>
+<a class="sourceLine" id="cb15-12" title="12">    }</a>
+<a class="sourceLine" id="cb15-13" title="13">)</a></code></pre></div>
 </div>
 <div id="writing-generic-functions---querying-model-structure" class="slide section level1">
 <h1>Writing generic functions - querying model structure</h1>
-<p>Calculating the density for all model nodes is not necessary for this optimization, since we’re doing maximum likelihood rather than maximum a posteriori (MAP) estimation. In particular we don’t need to calculate the prior density values.</p>
+<p>Calculating the density for all model nodes is not necessary for this optimization, since we’re doing maximum likelihood rather than maximum a posteriori (MAP) estimation. In particular we don’t need to calculate the prior density values. We do need to make sure to calculate any deterministic nodes intermediate between params and data (which NIMBLE might introduce behind the scenes).</p>
 <div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" title="1">objective &lt;-<span class="st"> </span><span class="kw">nimbleFunction</span>(</a>
 <a class="sourceLine" id="cb16-2" title="2">    <span class="dt">setup =</span> <span class="cf">function</span>(model, target) {</a>
-<a class="sourceLine" id="cb16-3" title="3">        <span class="co">## We only need to calculate the likelihood, not the full model density.  </span></a>
-<a class="sourceLine" id="cb16-4" title="4">        calcNodes &lt;-<span class="st"> </span>model<span class="op">$</span><span class="kw">getDependencies</span>(target, <span class="dt">self =</span> <span class="ot">FALSE</span>)</a>
-<a class="sourceLine" id="cb16-5" title="5">        <span class="kw">cat</span>(<span class="st">&quot;Maximixing w.r.t. &quot;</span>, <span class="kw">paste</span>(calcNodes, <span class="dt">collapse =</span> <span class="st">&#39;,&#39;</span>), <span class="st">&quot;.</span><span class="ch">\n</span><span class="st">&quot;</span>)</a>
-<a class="sourceLine" id="cb16-6" title="6">    },</a>
-<a class="sourceLine" id="cb16-7" title="7">    <span class="dt">run =</span> <span class="cf">function</span>(<span class="dt">par =</span> <span class="kw">double</span>(<span class="dv">1</span>)) {</a>
-<a class="sourceLine" id="cb16-8" title="8">        <span class="kw">returnType</span>(<span class="kw">double</span>(<span class="dv">0</span>))</a>
-<a class="sourceLine" id="cb16-9" title="9">        <span class="kw">values</span>(model, target) &lt;&lt;-<span class="st"> </span><span class="kw">exp</span>(par)</a>
-<a class="sourceLine" id="cb16-10" title="10">        ans &lt;-<span class="st"> </span>model<span class="op">$</span><span class="kw">calculate</span>(calcNodes)</a>
-<a class="sourceLine" id="cb16-11" title="11">        <span class="kw">return</span>(ans)</a>
-<a class="sourceLine" id="cb16-12" title="12">    }</a>
-<a class="sourceLine" id="cb16-13" title="13">)</a></code></pre></div>
+<a class="sourceLine" id="cb16-3" title="3">        <span class="co">## We only need to calculate the likelihood, not the full model density.</span></a>
+<a class="sourceLine" id="cb16-4" title="4">        <span class="co">## This code assumes there are no stochastic terms between &#39;target&#39; nodes and data nodes.</span></a>
+<a class="sourceLine" id="cb16-5" title="5">        calcNodes &lt;-<span class="st"> </span>model<span class="op">$</span><span class="kw">getDependencies</span>(target, <span class="dt">self =</span> <span class="ot">FALSE</span>)</a>
+<a class="sourceLine" id="cb16-6" title="6">        dataNodes &lt;-<span class="st"> </span>model<span class="op">$</span><span class="kw">getNodeNames</span>(<span class="dt">dataOnly =</span> <span class="ot">TRUE</span>)</a>
+<a class="sourceLine" id="cb16-7" title="7">        <span class="kw">cat</span>(<span class="st">&quot;Optimizing w.r.t. &quot;</span>, <span class="kw">paste</span>(target, <span class="dt">collapse =</span> <span class="st">&#39;,&#39;</span>), <span class="st">&quot;.</span><span class="ch">\n</span><span class="st">&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;&quot;</span>)</a>
+<a class="sourceLine" id="cb16-8" title="8">        <span class="kw">cat</span>(<span class="st">&quot;Calculating &quot;</span>, <span class="kw">paste</span>(calcNodes, <span class="dt">collapse =</span> <span class="st">&#39;,&#39;</span>), <span class="st">&quot;.</span><span class="ch">\n</span><span class="st">&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;&quot;</span>)</a>
+<a class="sourceLine" id="cb16-9" title="9">        <span class="kw">cat</span>(<span class="st">&quot;Likelihood contributions are from &quot;</span>, <span class="kw">paste</span>(dataNodes, <span class="dt">collapse =</span> <span class="st">&#39;,&#39;</span>), <span class="st">&quot;.</span><span class="ch">\n</span><span class="st">&quot;</span>, <span class="dt">sep =</span> <span class="st">&quot;&quot;</span>)</a>
+<a class="sourceLine" id="cb16-10" title="10">    },</a>
+<a class="sourceLine" id="cb16-11" title="11">    <span class="dt">run =</span> <span class="cf">function</span>(<span class="dt">par =</span> <span class="kw">double</span>(<span class="dv">1</span>)) {</a>
+<a class="sourceLine" id="cb16-12" title="12">        <span class="kw">returnType</span>(<span class="kw">double</span>(<span class="dv">0</span>))</a>
+<a class="sourceLine" id="cb16-13" title="13">        <span class="co">## Still assuming all params are log-transformed - not very general!</span></a>
+<a class="sourceLine" id="cb16-14" title="14">        <span class="kw">values</span>(model, target) &lt;&lt;-<span class="st"> </span><span class="kw">exp</span>(par)</a>
+<a class="sourceLine" id="cb16-15" title="15">        <span class="co">## Calculate likelihood, including any deterministic nodes intermediate between params and data</span></a>
+<a class="sourceLine" id="cb16-16" title="16">        model<span class="op">$</span><span class="kw">calculate</span>(calcNodes)</a>
+<a class="sourceLine" id="cb16-17" title="17">        <span class="co">## Return the likelihood</span></a>
+<a class="sourceLine" id="cb16-18" title="18">        ans &lt;-<span class="st"> </span>model<span class="op">$</span><span class="kw">getLogProb</span>(dataNodes) </a>
+<a class="sourceLine" id="cb16-19" title="19">        <span class="kw">return</span>(ans)</a>
+<a class="sourceLine" id="cb16-20" title="20">    }</a>
+<a class="sourceLine" id="cb16-21" title="21">)</a></code></pre></div>
 <div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" title="1">rObjective &lt;-<span class="st"> </span><span class="kw">objective</span>(littersMargModel, <span class="kw">c</span>(<span class="st">&#39;a&#39;</span>, <span class="st">&#39;b&#39;</span>)) <span class="co">## or c(&#39;a[1]&#39;,&#39;a[2]&#39;,&#39;b[1]&#39;,&#39;b[2]&#39;)</span></a></code></pre></div>
-<pre><code>## Maximixing w.r.t.  r[1, 1],r[1, 2],r[1, 3],r[1, 4],r[1, 5],r[1, 6],r[1, 7],r[1, 8],r[1, 9],r[1, 10],r[1, 11],r[1, 12],r[1, 13],r[1, 14],r[1, 15],r[1, 16],r[2, 1],r[2, 2],r[2, 3],r[2, 4],r[2, 5],r[2, 6],r[2, 7],r[2, 8],r[2, 9],r[2, 10],r[2, 11],r[2, 12],r[2, 13],r[2, 14],r[2, 15],r[2, 16] .</code></pre>
+<pre><code>## Optimizing w.r.t. a,b.
+## Calculating r[1, 1],r[1, 2],r[1, 3],r[1, 4],r[1, 5],r[1, 6],r[1, 7],r[1, 8],r[1, 9],r[1, 10],r[1, 11],r[1, 12],r[1, 13],r[1, 14],r[1, 15],r[1, 16],r[2, 1],r[2, 2],r[2, 3],r[2, 4],r[2, 5],r[2, 6],r[2, 7],r[2, 8],r[2, 9],r[2, 10],r[2, 11],r[2, 12],r[2, 13],r[2, 14],r[2, 15],r[2, 16].
+## Likelihood contributions are from r[1, 1],r[1, 2],r[1, 3],r[1, 4],r[1, 5],r[1, 6],r[1, 7],r[1, 8],r[1, 9],r[1, 10],r[1, 11],r[1, 12],r[1, 13],r[1, 14],r[1, 15],r[1, 16],r[2, 1],r[2, 2],r[2, 3],r[2, 4],r[2, 5],r[2, 6],r[2, 7],r[2, 8],r[2, 9],r[2, 10],r[2, 11],r[2, 12],r[2, 13],r[2, 14],r[2, 15],r[2, 16].</code></pre>
 <div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb19-1" title="1">cObjective &lt;-<span class="st"> </span><span class="kw">compileNimble</span>(rObjective, <span class="dt">project =</span> littersMargModel)</a></code></pre></div>
 <pre><code>## Compiling
 ##   [Note] This may take a minute.

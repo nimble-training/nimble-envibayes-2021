@@ -32,7 +32,7 @@ See our [guide online](https://r-nimble.org/quick-guide-for-converting-from-jags
 
   - Alternative distribution parameterizations (like R).
   - Named parameters (like R).
-  - Vectorized math and linear algebra.
+  - Vectorized math (e.g., `pred[1:5] <- b0 + b1*x[1:5]`) and linear algebra.
   - Definition-time if-then-else (multiple model variants from the same code).
   - User-defined functions and distributions.
   - Distinction between `constants` and `data`.
@@ -190,7 +190,7 @@ If you wish to define multiple alternative models in one set of code,
 you can use if-then-else statements.  These will be evaluated based on
 variables in the R environment when the model is defined. **You cannot
 use if statements as statements within model code apart from this usage
-of definining alternative models.**
+of defining alternative models.**
 
 For example:
 

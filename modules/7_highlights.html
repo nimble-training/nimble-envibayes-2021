@@ -114,7 +114,10 @@ NIMBLE Development Team
 </ul>
 <p>The latter are available indirectly by using the multivariate normal density.</p>
 <p>The former are provided using NIMBLE’s BNP functionality.</p>
-<p>The basic idea is to model an unknown distribution as a mixture of an unknown number of component distributions (e.g., normal densities). The Dirichlet process construction allows one to estimate the number of components rther than having to specify it in advance as with finite mixture models.</p>
+<ul>
+<li>The basic idea is to model an unknown distribution as a mixture of an unknown number of component distributions (e.g., normal densities).</li>
+<li>The Dirichlet process construction allows one to estimate the number of components rther than having to specify it in advance as with finite mixture models.</li>
+</ul>
 </div>
 <div id="bnp---example" class="slide section level1">
 <h1>BNP - example</h1>
@@ -138,14 +141,18 @@ NIMBLE Development Team
 <ul>
 <li>RJMCMC is a method for sampling across different models.</li>
 <li>Specifically it is about sampling between different numbers of dimensions.</li>
-<li>In full generality, RJ requires one to figure out a way to propose reasonable parameter values when moving between models. Hard!</li>
+<li>In full generality, RJ requires one to figure out a way to propose reasonable parameter values when moving between models with different numbers of parameters. Often hard!</li>
 <li>RJ for variable selection is relatively simple.</li>
 </ul>
-<p>RJ in nimble turns off and on variables in regression-style models. This can be done explicitly using indicator variables that are the on-off switch or implicitly.</p>
+<p>RJ in NIMBLE turns off and on variables in regression-style models. This can be done:</p>
+<ul>
+<li>explicitly using indicator variables that are the on-off switch or</li>
+<li>implicitly.</li>
+</ul>
 </div>
 <div id="reversible-jump-for-variable-selection-1" class="slide section level1">
 <h1>Reversible jump for variable selection</h1>
-<p>Here are some code snippets:</p>
+<p>Here are some code snippets for use without an indicator variable:</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" title="1">code &lt;-<span class="st"> </span><span class="kw">nimbleCode</span>({</a>
 <a class="sourceLine" id="cb2-2" title="2">   <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span>n) </a>
 <a class="sourceLine" id="cb2-3" title="3">      y[i] <span class="op">~</span><span class="st"> </span><span class="kw">dnorm</span>(beta0 <span class="op">+</span><span class="st"> </span>beta1<span class="op">*</span>x1[i] <span class="op">+</span><span class="st"> </span>beta2<span class="op">*</span>x2[i], <span class="dt">sd =</span> sigma)</a>
@@ -186,9 +193,6 @@ NIMBLE Development Team
 <li>a WAIC that allows one to group observations (e.g., treating all observations from a single patient as an “observation”)</li>
 <li>a WAIC that seeks to predict new random effects by marginalizing over latent variables</li>
 </ul>
-</div>
-<div id="waic---example" class="slide section level1">
-<h1>WAIC - example</h1>
 <p>Here’s some syntax for the different WAIC variations:</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" title="1"><span class="co">## Conditional WAIC without data grouping:</span></a>
 <a class="sourceLine" id="cb3-2" title="2">conf &lt;-<span class="st"> </span><span class="kw">configureMCMC</span>(Rmodel, <span class="dt">enableWAIC =</span> <span class="ot">TRUE</span>)</a>
@@ -223,8 +227,14 @@ NIMBLE Development Team
 </ul>
 <p>The external code could be:</p>
 <ul>
-<li>C++ (or a C++ wrapper to other languages) using <code>nimbleExternalCall</code></li>
-<li>arbitrary R code beyond the R syntax that NIMBLE can compile using <code>nimbleRcall</code></li>
+<li>C/C++ (or a C/C++ wrapper to other languages)
+<ul>
+<li>use <code>nimbleExternalCall</code></li>
+</ul></li>
+<li>arbitrary R code beyond the R syntax that NIMBLE can compile
+<ul>
+<li>use <code>nimbleRcall</code></li>
+</ul></li>
 </ul>
 </div>
 <div id="calling-external-code---example" class="slide section level1">
@@ -251,7 +261,7 @@ NIMBLE Development Team
 ##   [Note] This may take a minute.
 ##   [Note] Use &#39;showCompilerOutput = TRUE&#39; to see C++ compilation details.</code></pre>
 <div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" title="1">CdemoModel<span class="op">$</span>q</a></code></pre></div>
-<pre><code>## [1] -1.0301792  0.9257222</code></pre>
+<pre><code>## [1] -1.0591061  0.9873164</code></pre>
 <p>For C++ code, you’ll provide the compiled object file and a header file, and you’ll need to give us some type information. See <code>help(nimbleExternalCall)</code>.</p>
 </div>
 <div id="sequential-monte-carlo" class="slide section level1">
