@@ -6,7 +6,7 @@
   <meta http-equiv="Content-Style-Type" content="text/css" />
   <meta name="generator" content="pandoc" />
   <meta name="author" content="Chris Paciorek, Department of Statistics, UC Berkeley" />
-  <title>Developing, modifying, and sharing Bayesian algorithms (MCMC samplers, SMC, and more) using the NIMBLE platform in R</title>
+  <title>Programming with hierarchical statistical models: Using the flexible NIMBLE system for MCMC and more</title>
   <style type="text/css">
       code{white-space: pre-wrap;}
       span.smallcaps{font-variant: small-caps;}
@@ -18,7 +18,7 @@
 </head>
 <body>
 <div class="slide titlepage">
-  <h1 class="title">Developing, modifying, and sharing Bayesian algorithms (MCMC samplers, SMC, and more) using the NIMBLE platform in R</h1>
+  <h1 class="title">Programming with hierarchical statistical models: Using the flexible NIMBLE system for MCMC and more</h1>
   <p class="subtitle">enviBayes tutorial</p>
   <p class="author">
 Chris Paciorek, Department of Statistics, UC Berkeley
@@ -44,7 +44,7 @@ Chris Paciorek, Department of Statistics, UC Berkeley
 <li>keep your eyes open! – We’ll illustrate a lot of syntax and concepts by example</li>
 <li>try to guess what the syntax means in cases we haven’t yet seen that syntax</li>
 <li>play with it and try variations and try to break it and see what happens</li>
-<li>post a comment on the Etherpad if something interesting happens as you experiment</li>
+<li>post a comment/question in the Zoom chat if something interesting happens as you experiment</li>
 <li>ask questions!</li>
 </ul>
 <p>A few additional thoughts on my pedagogical philosophy here:</p>
@@ -57,7 +57,7 @@ Chris Paciorek, Department of Statistics, UC Berkeley
 <div id="rstudio-and-r-markdown" class="slide section level1">
 <h1>RStudio and R Markdown</h1>
 <p>We’ll present most of the material from within RStudio, using R Markdown documents with embedded R code. R Markdown is an extension to the Markdown markup language that makes it easy to write HTML in a simple plain text format. This allows us to both run the R/NIMBLE code directly as well as compile on-the-fly to an HTML file that can be used for presentation. All files will be available on <a href="https://github.com/nimble-training/nimble-envibayes-2021">GitHub</a>.</p>
-<p>Note: The files named <em>foo_slides.html</em> have individual slides, while the files named <em>foo.html</em> have the same content but all on one page.</p>
+<p>Note: The files named <em>1_content.html</em> have individual slides, while the files named <em>1_content_onepage.html</em> have the same content but all on one page.</p>
 <p>Warning: in some cases the processing of the R code in the R Markdown is screwy and the slides have error messages that do not occur if you just run the code directly in R or RStudio.</p>
 </div>
 <div id="getting-the-workshop-materials" class="slide section level1">
